@@ -234,13 +234,13 @@ So basically, the flow goes like this:
 
 ### Global options
 
-**`tmp:`** Specify a temporary folder for the combiner to use as required.
+**tmp:** Specify a temporary folder for the combiner to use as required.
 
-**`silent:`** Set to true to show only fatal errors, otherwise be verbose.
+**silent:** Set to true to show only fatal errors, otherwise be verbose.
 
 ### LESS options (`less:`)
 
-**`command:`** Specify the command to run to compile LESS files. The example in
+**command:** Specify the command to run to compile LESS files. The example in
 this documentation assumes the use of the less.js compiler. In that instance,
 NodeJS will need to be installed to invoke it.
 
@@ -248,24 +248,24 @@ In theory, another compiler implementation could be used. It must take input via
 STDIN and send output to STDOUT. The `:tmp` token is replaced with the
 temporary directory specified by `tmp:`.
 
-**`compile:`** Allows you to specify one or more compile actions. Each of these
+**compile:** Allows you to specify one or more compile actions. Each of these
 actions consist of the following keys:
 
-**`in:`** Glob pattern or array of glob patterns of files to copy to the
+**in:** Glob pattern or array of glob patterns of files to copy to the
 temporary directory specified by `tmp:`.
 
-**`not:`** *Optional.* Simple exclusion pattern or array of patterns to run
+**not:** *Optional.* Simple exclusion pattern or array of patterns to run
 against the file list collected by `in:` (partial text match).
 
-**`out:`** The output file for the compiled CSS styles. The optional `:hash`
+**out:** The output file for the compiled CSS styles. The optional `:hash`
 token can be specified anywhere in the filename, and will be replaced with the
 MD5 hash value of the contents of the compiled CSS.
 
-**`hash:`** *Optional.* Write the computed MD5 hash value of the compiled CSS to
+**hash:** *Optional.* Write the computed MD5 hash value of the compiled CSS to
 this file. It is recommended to write it somewhere within the `_includes` folder
 so as to be able to `{% include %}` it in your `<style>` tag.
 
-**`root:`** The combiner plugin doesn't actually combine LESS files, instead
+**root:** The combiner plugin doesn't actually combine LESS files, instead
 deferring this responsibility to the LESS compiler and the file specified in
 this configuration option. It is the role of the `root:` file to `@import` other
 LESS files.
@@ -275,48 +275,48 @@ where `@import` statements can read them in as siblings.*
 
 ### JS options (`js:`)
 
-**`combine:`** Allows you to specify one or more combine actions. Each of these
+**combine:** Allows you to specify one or more combine actions. Each of these
 actions consist of the following keys:
 
-**`in:`** Glob pattern or array of glob patterns of files to combine.
+**in:** Glob pattern or array of glob patterns of files to combine.
 
-**`not:`** *Optional.* Simple exclusion pattern or array of patterns to run
+**not:** *Optional.* Simple exclusion pattern or array of patterns to run
 against the file list collected by `in:` (partial text match).
 
-**`out:`** The output file for the combined/uglified JS. The optional `:hash`
+**out:** The output file for the combined/uglified JS. The optional `:hash`
 token can be specified anywhere in the filename, and will be replaced with the
 MD5 hash value of the contents of the combined/uglified JS.
 
-**`hash:`** *Optional.* Write the computed MD5 hash value of the compiled CSS to
+**hash:** *Optional.* Write the computed MD5 hash value of the compiled CSS to
 this file. It is recommended to write it somewhere within the `_includes` folder
 so as to be able to `{% include %}` it in your `<script>` tag.
 
-**`uglify:`** Whether or not to uglify (minify/compress) the JS code.
+**uglify:** Whether or not to uglify (minify/compress) the JS code.
 
 ### Copy options (`copy:`)
 
-**`copy:`** Allows you to specify one or more copying actions. Each of these
+**copy:** Allows you to specify one or more copying actions. Each of these
 actions consist of the following keys:
 
-**`in:`** Glob pattern or array of glob patterns of files to copy.
+**in:** Glob pattern or array of glob patterns of files to copy.
 
-**`not:`** *Optional.* Simple exclusion pattern or array of patterns to run
+**not:** *Optional.* Simple exclusion pattern or array of patterns to run
 against the file list collected by `in:` (partial text match).
 
-**`out:`** Destination folder for files being copied.
+**out:** Destination folder for files being copied.
 
 ## Copyright and license
 
-	Copyright 2012 Mathieu Bouchard
+> Copyright 2012 Mathieu Bouchard
 
-	Licensed under the Apache License, Version 2.0 (the "License");
-	you may not use this work except in compliance with the License.
-	You may obtain a copy of the License in the LICENSE file, or at:
+> Licensed under the Apache License, Version 2.0 (the "License");
+> you may not use this work except in compliance with the License.
+> You may obtain a copy of the License in the LICENSE file, or at:
 
-	    http://www.apache.org/licenses/LICENSE-2.0
+>     http://www.apache.org/licenses/LICENSE-2.0
 
-	Unless required by applicable law or agreed to in writing, software
-	distributed under the License is distributed on an "AS IS" BASIS,
-	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	See the License for the specific language governing permissions and
-	limitations under the License.
+> Unless required by applicable law or agreed to in writing, software
+> distributed under the License is distributed on an "AS IS" BASIS,
+> WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+> See the License for the specific language governing permissions and
+> limitations under the License.
