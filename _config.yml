@@ -1,0 +1,63 @@
+# EXAMPLE _config.yml
+
+# Define your combining/minifcation instructions within "combiner:". In Jekyll,
+# paths are relative to _config.yml.
+
+# This example shows example usage with Twitter Bootstrap. Note that the "root:"
+# file is tasked with doing combining through @import. We are effectively
+# leveraging (and depending upon) the LESS compiler to combine our LESS/CSS.
+
+# What actually takes place is that all files specified by "in:" are copied to
+# the folder specified by "tmp:", then the file specified by "root:" is compiled
+# using "command:". No combining is done by the combiner -- the LESS compiler
+# will inherently "combine" using @import statements.
+
+combiner:
+  # Temporary directory for use by the plugin
+  tmp: _tmp
+  # Set to true to show only fatal errors
+  silent: false
+  less:
+    # Relies on NodeJS being installed, and having the lessjs compiler
+    # In theory, another implementation can be used. It must take input via
+    # STDIN and output to STDOUT. The :tmp token is replaced with a temp
+    # folder based on the one specified above
+    command: 'node lib/lessjs/bin/lessc --compress --include-path=:tmp -'
+    # Specify one or more sets of in/[not]/out/[hash]/root
+    compile:
+    - in: ['css/*.less', 'lib/twitter-bootstrap-320b75d/less/*.less']
+      out: 'gen/:hash.min.css'
+      # Output the hash used in :hash to this file. Use a liquid include
+      # to re-assemble the css filename in your HTML
+      hash: '_includes/gen/css.hash'
+      root: 'main.less'
+  js:
+    # Specify one or more sets of in/[not]/out/[hash]/[uglify]
+    combine:
+    - in:
+      # Can't use *.js... loading tooltip after popover causes error
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-affix.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-alert.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-button.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-carousel.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-collapse.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-dropdown.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-modal.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-tooltip.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-popover.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-scrollspy.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-tab.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-transition.js'
+      - 'lib/twitter-bootstrap-320b75d/js/bootstrap-typeahead.js'
+      - 'js/main.js'
+      out: 'gen/:hash.min.js'
+      # Output the hash used in :hash to this file. Use a liquid include
+      # to re-assemble the scripts filename in your HTML
+      hash: '_includes/gen/js.hash'
+      # Set to true to minify JS. Setting to false is much faster and is
+      # recommended for development
+      uglify: true
+  # Specify one or more sets of in/[not]/out
+  copy:
+  - in: 'lib/twitter-bootstrap-320b75d/img/*.png'
+    out: 'img'

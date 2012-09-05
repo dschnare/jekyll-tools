@@ -1,0 +1,23 @@
+begin
+	require 'rubygems'
+	require 'bundler'
+rescue LoadError
+	raise "Could not load the bundler gem. Install it with `gem install bundler`."
+end
+
+begin
+	Bundler.setup
+rescue Bundler::GemNotFound
+	raise RuntimeError, "Bundler couldn't find some gems. Did you run `bundle install`?"
+end
+
+task :default => :test
+
+desc 'Run test suite'
+task :test do
+	run_tests
+end
+
+def run_tests
+	require_relative 'test_combiner'
+end
