@@ -1,4 +1,4 @@
-# This file servers as a mock module for Jekyll to allow testing of the
+# This file serves as a mock module for Jekyll to allow testing of the
 # plugin without requiring Jekyll itself
 
 module Jekyll

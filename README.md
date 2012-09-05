@@ -15,8 +15,8 @@ allowing arbitrary file copying.
 This combiner is ideal for use with
 [Twitter Bootstrap](http://twitter.github.com/bootstrap/). The example below
 outlines a very basic Jekyll setup that is well integrated with Bootstrap,
-allowing full customization of its LESS variables, using Bootstrap mixins -- all
-without touching the Bootstrap core.
+allowing control over its LESS variables and allowing you to use Bootstrap
+mixins -- all without touching the Bootstrap core.
 
 ## Getting Started
 
