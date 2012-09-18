@@ -33,7 +33,7 @@ as you see fit for your own style:
 	|__ default.html
 	_plugins
 	|__ combiner.rb
-	css
+	less
 	|__ main.less
 	js
 	|__ main.js
@@ -75,7 +75,7 @@ as you see fit for your own style:
 
 -	The `_plugins` folder holds the `combiner.rb` file, which is our plugin.
 
--	The `css` folder holds our website's LESS stylesheets. An example
+-	The `less` folder holds our website's LESS stylesheets. An example
 	`main.less`:
 
 		@import "bootstrap";
@@ -165,7 +165,7 @@ as you see fit for your own style:
 		  less:
 		    command: 'node _assets/lessjs/bin/lessc --compress --include-path=:tmp -'
 		    compile:
-		    - in: ['_assets/twitter-bootstrap-320b75d/less/*.less', 'css/*.less']
+		    - in: ['_assets/twitter-bootstrap-320b75d/less/*.less', 'less/*.less']
 		      out: 'gen/:hash.min.css'
 		      hash: '_includes/gen/css.hash'
 		      root: 'main.less'
