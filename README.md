@@ -99,12 +99,10 @@ as you see fit for your own style:
 
 		source "http://rubygems.org"
 
-		gem 'growl'
 		gem 'jekyll'
 		gem 'liquid'
 		gem 'rake'
 		gem 'uglifier'
-		gem 'sys-uname'
 
 -	The `Rakefile` could look like the following:
 
@@ -113,12 +111,6 @@ as you see fit for your own style:
 			require 'bundler'
 		rescue LoadError
 			raise "Could not load the bundler gem. Install it with `gem install bundler`."
-		end
-
-		begin
-			require 'sys/uname'
-		rescue LoadError
-			raise "Could not load sys-uname. Did you run `bundle install`?"
 		end
 
 		begin
@@ -139,12 +131,24 @@ as you see fit for your own style:
 			jekyll '--server --auto'
 		end
 
+		def is_windows
+			return true if RUBY_PLATFORM.downcase.include? 'mswin'
+			return true if RUBY_PLATFORM.downcase.include? 'mingw'
+			return false if RUBY_PLATFORM.downcase.include? 'darwin'
+			return false if RUBY_PLATFORM.downcase.include? 'linux'
+			return false
+		end
+
 		def jekyll(opts = '')
-			if Sys::Uname.sysname.downcase.include? "windows"
+			if is_windows
 				sh 'chcp 65001'
 				sh 'if exist _site rd /s /q _site'
+				sh 'if exist _site rd /s /q _includes/gen'
+				sh 'if exist _site rd /s /q gen'
 			else
 				sh 'rm -rf _site'
+				sh 'rm -rf _includes/gen'
+				sh 'rm -rf gen'
 			end
 			sh 'jekyll ' + opts
 		end
@@ -161,7 +165,7 @@ as you see fit for your own style:
 		  less:
 		    command: 'node _assets/lessjs/bin/lessc --compress --include-path=:tmp -'
 		    compile:
-		    - in: ['css/*.less', '_assets/twitter-bootstrap-320b75d/less/*.less']
+		    - in: ['_assets/twitter-bootstrap-320b75d/less/*.less', 'css/*.less']
 		      out: 'gen/:hash.min.css'
 		      hash: '_includes/gen/css.hash'
 		      root: 'main.less'
@@ -304,6 +308,13 @@ actions consist of the following keys:
 against the file list collected by `in:` (partial text match).
 
 **out:** Destination folder for files being copied.
+
+## TODO / Ideas:
+
+- 	Consider iterating over the top level config keys in _config.yml and execute
+	in that order. We could then do some copy operations beforehand, and then
+	afterwards too. This came up with regards to a more solid FontAwesome
+	integration flow
 
 ## Copyright and license
 
