@@ -1,83 +1,3 @@
-=begin
-
-This plugin compiles LESS stylesheets starting at a source/main stylesheet that
-includes all dependent stylesheets. Compilation is determined by hooks specified
-in the config.yml file. If there is no 'compile' hook then no compilation occurs.
-
-This plugin comes with example hooks at ./hooks/lessbuild.hook. The extension
-of this file is '.hook' so Jekyll does not load it as a Ruby file. Any
-extension can be used for hook files.
-
-The config mapping 'lessbuild' must be present in config.yml for this plugin to run.
-
-NOTE: All paths are relative to the project root unless otherwise stated.
-
-
-Config
-----------------
-
-NOTE: There has to be a default hook file specified that has a 'compile' hook
-or a hook file specific to a build target that has a 'compile' hook in order
-for compilation to occur.
-
-lessbuild:
-  # An optional path to a custom hook file.
-  # This will be the default hooks unless overriden.
-  # Your hook file must contain a 'compile' hook for
-  # compilation to occur.
-
-  hooks: _plugins/build/hooks/lessbuild.hook
-
-  # Every other key represents a build target, where
-  # the key is a CSS file relative to the 'destination' setting.
-  #
-  # To include this file in your HTML you simply use the build target
-  # filename:
-  #   <link rel="stylesheet" type="text/css" href="inc/css/main.min.css" />
-
-  inc/css/main.min.css:
-    # An optional path to a custom hook file for this build target.
-    # This will override any default hooks.
-
-  	hooks: _hooks/lessbuild-custom.rb
-
-  	# The path to the main LESS stylesheet.
-
-    main: _src/less/main.less
-
-    # Sequence of files to include in the build.
-
-    include:
-      - _src/less/**/*.less
-      - _assets/vendor/bootstrap/less/*.less
-
-    # An optional sequence of files to exclude form the build.
-
-    exclude:
-      - _src/less/themes/**/*.less
-
-
-  # This form inserts a MD5 hash of the compiled CSS file into
-  # the build target name. The token @hash will be replaced with the MD5 digest.
-  #
-  # To include this file in your HTML you must use the variable on the site
-  # template data hash. The variable name is your build target name:
-  #   <link rel="stylesheet" type="text/css" href="{{ site["inc/css/main-@hash.css"] }}" />
-
-  inc/css/main-@hash.css:
-  	hooks: _hooks/lessbuild-custom.rb
-    main: _src/less/main.less
-    include:
-      - _src/less/**/*.less
-      - _assets/vendor/bootstrap/less/*.less
-
-Hooks
-----------------
-
-See ./hooks/lessbuild.rb for documentation and examples.
-
-=end
-
 require 'fileutils'
 require 'tmpdir'
 require 'digest/md5'
@@ -85,6 +5,89 @@ require_relative 'lib/helpers.rb'
 require_relative 'lib/hooks.rb'
 
 module Jekyll
+	########################################################
+	# Extend the builtin Jekyll classes so that we can add #
+	# additional variables to the template data hashes.    #
+	########################################################
+
+	class Site
+		@@css = {}
+		def self.css() @@css end
+
+		alias :css_site_payload :site_payload
+
+		def site_payload
+			payload = css_site_payload
+			payload['site'] = payload['site'].deep_merge({
+				'css' => @@css.dup
+			})
+
+			# Make all CSS paths absolute. This is safe to do
+			# because all CSS paths are relative to the site root.
+			css = payload['site']['css']
+			css.each_pair do |k, v|
+				css[k] = File.join('/', v)
+			end
+
+			payload
+		end
+	end
+
+	module CSSToLiquidRelative
+		def self.to_liquid(hash)
+			lq = hash.deep_merge({
+				'css' => Site.css.dup
+			})
+
+			css = lq['css']
+			dir = lq['url']
+			# If the URL of this page is of the form '/page1/index.html'
+			# then we get the dirname of it.
+			dir = File.dirname(dir) if !File.extname(dir).empty?
+			dirs = dir.split('/')
+			# Remove the leading and trailing empty dirs. This occurs
+			# from paths like '/' or '/page1/'.
+			dirs.shift if dirs.first == ''
+			dirs.pop if dirs.last == ''
+			# Construct the relative portion of the URL.
+			rel = ''
+			(1..dirs.length).each { rel << '../' }
+
+			# Prefix the relative portion of the URL to each CSS
+			# path. We have to do this because all CSS paths
+			# are relative to the site root.
+			css.each_pair do |k, v|
+				v = File.join(rel, v)
+				# If the URL to the CSS file is absolute
+				# then we force it to be relative. This will
+				# only ever occur for pages that are at the root
+				# of your site.
+				v = v[1..-1] if v[0] == '/'
+				css[k] = v
+			end
+
+			lq
+		end
+	end
+
+	class Page
+		alias :css_to_liquid_orig :to_liquid
+		def to_liquid
+			CSSToLiquidRelative.to_liquid(css_to_liquid_orig)
+		end
+	end
+
+	class Post
+		alias :css_to_liquid_orig :to_liquid
+		def to_liquid
+			CSSToLiquidRelative.to_liquid(css_to_liquid_orig)
+		end
+	end
+
+	##############
+	# The Plugin #
+	##############
+
 	class LessBuildGenerator < Generator
 		def generate(site)
 			@hooks = Hooks.new if @hooks.nil?
@@ -115,11 +118,14 @@ module Jekyll
 			# We do this here because static files are written last.
 			@compiled_output = compile()
 
+			Site.css[@file] = @file
+
 			if !@compiled_output.empty? and @file.include?('@hash')
 				@digest = Digest::MD5.hexdigest(@compiled_output)
 				hashed_filename = @file.gsub('@hash', @digest)
 				@name = File.basename(hashed_filename)
-				@site.config[@file] = hashed_filename
+
+				Site.css[@file] = hashed_filename
 			end
 		end
 
@@ -151,7 +157,7 @@ module Jekyll
 		def compile()
 			output = ''
 
-			if @settings.has_key? 'include' and @settings.has_key? 'main'
+			if @settings.has_key? 'main'
 				includes = @settings.get_as_array('include')
 				excludes = @settings.get_as_array('exclude')
 				main = @settings['main']

@@ -7,8 +7,8 @@
 	}
 
 	if (SOME_FRAMEWORK) {
-		write(SOME_FRAMEWORK.toUpper('some framework exists!'));
+		write(SOME_FRAMEWORK.toUpper('<em>some framework</em> <strong>exists</strong>!'));
 	} else {
-		write('SOME_FRAMEWORK does not exist.');
+		write('<em>SOME_FRAMEWORK</em> does <strong>not exist</strong>.');
 	}
 }(this.document, this.SOME_FRAMEWORK));

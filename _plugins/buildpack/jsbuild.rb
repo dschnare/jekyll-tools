@@ -1,97 +1,93 @@
-=begin
-
-This plugin will combine JavaScript files and optionally compile the combined file.
-Compilation is determined by hooks specified in the _config.yml file. If there is
-no 'compile' hook then no compilation occurs.
-
-This plugin comes with example hooks at ./hooks/jsbuild.hook. The extension
-of this file is '.hook' so Jekyll does not load it as a Ruby file. Any
-extension can be used for hook files.
-
-The config mapping 'jsbuild' must be present in _config.yml for this plugin to run.
-
-NOTE: All paths are relative to the project root unless otherwise stated.
-
-
-Config
----------------------
-
-NOTE: There has to be a default hook file specified that has a 'compile' hook
-or a hook file specific to a build target that has a 'compile' hook in order
-for compilation to occur.
-
-jsbuild:
-  # An optional path to a custom hook file. This will be the
-  # default hooks unless overriden by a build target.
-
-  hooks: _plugins/build/hooks/jsbuild.hook
-
-  # Every other key represents a build target, where the key
-  # is a JavaScript file relative to the 'destination' setting.
-  # This form is a simple build target where only included files
-  # are listed in a sequence.
-  #
-  # To include this file in your HTML you simply use the build target
-  # filename:
-  #  <script type="text/javascript" src="inc/js/main.min.js"></script>
-
-  inc/js/main.min.js:
-    - _src/js/lib/**/*.js
-    - _src/js/main.js
-
-  # This form is an advanced build target where custom settings
-  # are specified.
-  #
-  # To include this file in your HTML you simply use the build target
-  # filename:
-  #  <script type="text/javascript" src="inc/js/main.min.js"></script>
-
-  inc/ns/main.min.js:
-  	# Hooks are optional and only apply to this build target. This will override any default hooks.
-
-  	hooks: _hooks/jsbuild-custom.rb
-
-	# Sequence of files to include in the build.
-
-  	include:
-      - _src/js/lib/**/*.js
-      - _src/js/main.js
-
-	# An optional sequence of files to exclude from the build.
-
-  	exclude
-  	  - _src/js/lib/_deprecated/**/*.js
-
-
-  # This form inserts a MD5 hash of the compiled JavaScript file into
-  # the build target name. The token @hash will be replaced with the MD5 digest.
-  #
-  # To include this file in your HTML you must use the variable on the site
-  # template data hash. The variable name is your build target name:
-  #  <script type="text/javascript" src="{{ site["inc/js/main-@hash.js"] }}"></script>
-
-  inc/js/main-@hash.js:
-    - _src/js/lib/**/*.js
-    - _src/js/main.js
-
-
-Hooks
----------------------
-
-See ./hooks/jsbuild.hook for documentation and examples.
-
-
-=end
-
 require 'fileutils'
 require 'digest/md5'
 require_relative 'lib/helpers.rb'
 require_relative 'lib/hooks.rb'
 
 module Jekyll
-	class JSBuildGenerator < Generator
-		priority :higheset
+	########################################################
+	# Extend the builtin Jekyll classes so that we can add #
+	# additional variables to the template data hashes.    #
+	########################################################
 
+	class Site
+		@@js = {}
+		def self.js() @@js end
+
+		alias :js_site_payload :site_payload
+
+		def site_payload
+			payload = js_site_payload
+			payload['site'] = payload['site'].deep_merge({
+				'js' => @@js.dup
+			})
+
+			# Make all JS paths absolute. This is safe to do
+			# because all JS paths are relative to the site root.
+			js = payload['site']['js']
+			js.each_pair do |k, v|
+				js[k] = File.join('/', v)
+			end
+
+			payload
+		end
+	end
+
+	module JSToLiquidRelative
+		def self.to_liquid(hash)
+			lq = hash.deep_merge({
+				'js' => Site.js.dup
+			})
+
+			js = lq['js']
+			dir = lq['url']
+			# If the URL of this page is of the form '/page1/index.html'
+			# then we get the dirname of it.
+			dir = File.dirname(dir) if !File.extname(dir).empty?
+			dirs = dir.split('/')
+			# Remove the leading and trailing empty dirs. This occurs
+			# from paths like '/' or '/page1/'.
+			dirs.shift if dirs.first == ''
+			dirs.pop if dirs.last == ''
+			# Construct the relative portion of the URL.
+			rel = ''
+			(1..dirs.length).each { rel << '../' }
+
+			# Prefix the relative portion of the URL to each JS
+			# path. We have to do this because all JS paths
+			# are relative to the site root.
+			js.each_pair do |k, v|
+				v = File.join(rel, v)
+				# If the URL to the JS file is absolute
+				# then we force it to be relative. This will
+				# only ever occur for pages that are at the root
+				# of your site.
+				v = v[1..-1] if v[0] == '/'
+				js[k] = v
+			end
+
+			lq
+		end
+	end
+
+	class Page
+		alias :js_to_liquid_orig :to_liquid
+		def to_liquid
+			JSToLiquidRelative.to_liquid(js_to_liquid_orig)
+		end
+	end
+
+	class Post
+		alias :js_to_liquid_orig :to_liquid
+		def to_liquid
+			JSToLiquidRelative.to_liquid(js_to_liquid_orig)
+		end
+	end
+
+	##############
+	# The Plugin #
+	##############
+
+	class JSBuildGenerator < Generator
 		def generate(site)
 			@hooks = Hooks.new if @hooks.nil?
 			config = site.config
@@ -127,11 +123,13 @@ module Jekyll
 			# We do this here because static files are written last.
 			@compiled_output = compile()
 
+			Site.js[@file] = @file
+
 			if !@compiled_output.empty? and @file.include?('@hash')
 				@digest = Digest::MD5.hexdigest(@compiled_output)
 				hashed_filename = @file.gsub('@hash', @digest)
 				@name = File.basename(hashed_filename)
-				@site.config[@file] = hashed_filename
+				Site.js[@file] = hashed_filename
 			end
 		end
 

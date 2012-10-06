@@ -30,7 +30,6 @@ jsbuild:
   js/main-@hash.js:
     - _assets/vendor/some-framework/module.js
     - _src/js/main.js
-
   js/main.js:
     - _assets/vendor/some-framework/module.js
     - _src/js/main.js
@@ -39,6 +38,14 @@ jsbuild:
 # LessBuild Plugin #
 ####################
 
+lessbuild:
+  hooks: ../_plugins/buildpack/hooks/lessbuild.hook
+
+  css/main-@hash.css:
+    main: _src/less/main.less
+  css/main.css:
+    main: _src/less/main.less
+
 ###############
 # Copy Plugin #
 ###############
@@ -46,3 +53,4 @@ jsbuild:
 copy:
   page[0-9]/docs:
     - _assets/*.txt
+
