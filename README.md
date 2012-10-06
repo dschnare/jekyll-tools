@@ -32,7 +32,7 @@ relative to a specific page.
 
 ```yaml
 jsbuild:
-  hooks: _plugins/hooks/jsbuild.hook
+  hooks: _plugins/buildpack/hooks/jsbuild.hook
 
   js/main-@hash.js:
     - _src/js/lib/**/*.js
@@ -62,7 +62,7 @@ jsbuild:
   # An optional path to a custom hook file. This will be the
   # default hooks unless overriden by a build target.
 
-  hooks: _plugins/build/hooks/jsbuild.hook
+  hooks: _plugins/buildpack/hooks/jsbuild.hook
 
   # Every other key represents a build target, where the key
   # is a JavaScript file relative to the 'destination' setting.
@@ -77,11 +77,14 @@ jsbuild:
   # are specified.
 
   inc/ns/main.min.js:
-    # Hooks are optional and only apply to this build target. This will override any default hooks.
+    # Hooks are optional and only apply to this build target.
+    # This will override any default hooks, but will still fallback
+    # to the default hooks if a particular hook is not defined at this level.
 
     hooks: _hooks/jsbuild-custom.rb
 
-    # Sequence of files to include in the build.
+    # Sequence of files or file globs to include in the build. The order of these files is
+    # important because this is the order they will be combined in.
 
     include:
       - _src/js/lib/**/*.js
@@ -117,7 +120,7 @@ See `_plugins/buildpack/hooks/jsbuild.hook` for documentation and examples.
 
 ## LessBuild
 
-This plugin compiles LESS stylesheets starting at a source/main stylesheet that
+This plugin compiles LESS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
 in the config.yml file. If there is no `compile` hook then no compilation occurs.
 
@@ -136,7 +139,7 @@ relative to a specific page.
 
 ```yaml
 lessbuild:
-  hooks: _plugins/hooks/less.hook
+  hooks: _plugins/buildpack/hooks/less.hook
 
   css/main-@hash.css:
     main: _src/less/main.less
@@ -170,14 +173,15 @@ lessbuild:
   # Your hook file must contain a 'compile' hook for
   # compilation to occur.
 
-  hooks: _plugins/build/hooks/lessbuild.hook
+  hooks: _plugins/buildpack/hooks/lessbuild.hook
 
   # Every other key represents a build target, where
   # the key is a CSS file relative to the 'destination' setting.
 
   inc/css/main.min.css:
-    # An optional path to a custom hook file for this build target.
-    # This will override any default hooks.
+    # Hooks are optional and only apply to this build target.
+    # This will override any default hooks, but will still fallback
+    # to the default hooks if a particular hook is not defined at this level.
 
     hooks: _hooks/lessbuild-custom.rb
 
@@ -243,7 +247,7 @@ copy:
   # An optional path to a custom hook file.
   # This will be the default hooks unless overriden.
 
-  hooks: _plugins/build/hooks/copy.hook
+  hooks: _plugins/buildpack/hooks/copy.hook
 
   # An optional setting to preserve recursive
   # directories in file patterns. Default is false.
@@ -263,8 +267,9 @@ copy:
   # are specified.
 
   inc/img:
-    # An optional path to a custom hook file for this copy target.
-    # This will override any default hooks.
+    # Hooks are optional and only apply to this copy target.
+    # This will override any default hooks, but will still fallback
+    # to the default hooks if a particular hook is not defined at this level.
 
     hooks: _hooks/copy-custom.rb
 
@@ -309,24 +314,16 @@ will be copied to the root of its copy target: `{destination}/inc/img/{file.ext}
 
 ```yaml
 copy:
-  inc/img:
+  inc/img/somedir:
     - _vendor/bootstrap/img/**/*.*
 ```
 
 Recursive directories can be preserved by setting the `preserve_dirs` mapping to true.
-All images in this example will now have a copy path: `{destination}/inc/img/nested/{recursive-directories}/{file.ext}`
-
-```yaml
-copy:
-  inc/img/nested:
-    preserve_dirs: true
-    include:
-      - _vendor/bootstrap/img/**/*.*
-```
+All images in this example will now have a copy path: `{destination}/inc/img/somedir/{recursive-directories}/{file.ext}`
 
 This setting has the affect of maintaining the path at the first recursive glob of each included file.
+In the following example the directory structure after `_vendor/bootstrap/img` for all images will be preserved when copying.
 
-This will keep the path from `_vendor/bootstrap/img` for all images.
 ```
 _vendor/bootstrap/img/**/*.*
 ```
