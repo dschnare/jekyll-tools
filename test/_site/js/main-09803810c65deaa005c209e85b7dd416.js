@@ -1,0 +1,1 @@
+var SOME_FRAMEWORK=function(){return{version:"0.0.1",toUpper:function(e){return e.toUpperCase()}}}();(function(e,t){function n(t){var n=e.getElementById("message");n&&(n.innerHTML=t)}t?n(t.toUpper("some framework exists!")):n("SOME_FRAMEWORK does not exist.")})(this.document,this.SOME_FRAMEWORK);
