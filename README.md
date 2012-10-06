@@ -6,7 +6,7 @@ The Jekyll Buildpack is a set of hook-driven Jekyll plugins that help compile JS
 
 # Test
 
-To experiment with an example quickly see the [test](test) directory.
+To experiment with an example quickly see the `test` directory.
 
 
 
@@ -18,7 +18,7 @@ This plugin will combine JavaScript files and optionally compile the combined fi
 Compilation is determined by hooks specified in the `_config.yml` file. If there is
 no `compile` hook then no compilation occurs.
 
-This plugin comes with example hooks at [_plugins/buildpack/hooks/jsbuild.hook](_plugins/buildpack/hooks/jsbuild.hook). The extension
+This plugin comes with example hooks at `_plugins/buildpack/hooks/jsbuild.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any extension can be used for hook files.
 
 The config mapping `jsbuild` must be present in `_config.yml` for this plugin to run.
@@ -109,7 +109,7 @@ jsbuild:
 - `compile(js)`
 - `post_compile(js)`
 
-See [jsbuild.hook](_plugins/buildpack/hooks/jsbuild.hook) for documentation and examples.
+See `_plugins/buildpack/hooks/jsbuild.hook` for documentation and examples.
 
 
 ---
@@ -121,7 +121,8 @@ This plugin compiles LESS stylesheets starting at a source/main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
 in the config.yml file. If there is no `compile` hook then no compilation occurs.
 
-This plugin comes with example hooks at [_plugins/buildpack/hooks/lessbuild.hook](_plugins/buildpack/hooks/lessbuild.hook). The extension of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
+This plugin comes with example hooks at `_plugins/buildpack/hooks/lessbuild.hook`.
+The extension of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
 extension can be used for hook files.
 
 The config mapping `lessbuild` must be present in `_config.yml` for this plugin to run.
@@ -215,7 +216,7 @@ lessbuild:
 - `compile(main_file)`
 - `post_compile(css)`
 
-See [lessbuild.hook](_plugins/buildpack/hooks/lessbuild.hook) for documentation and examples.
+See `_plugins/buildpack/hooks/lessbuild.hook` for documentation and examples.
 
 
 ---
@@ -225,7 +226,7 @@ See [lessbuild.hook](_plugins/buildpack/hooks/lessbuild.hook) for documentation 
 
 The copy plugin will copy files to a directory relative to the 'destination' setting.
 
-This plugin comes with example hooks at [_plugins/buildpack/hooks/copy.hook](_plugins/buildpack/hooks/copy.hook). The extension
+This plugin comes with example hooks at `_plugins/buildpack/hooks/copy.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
 extension can be used for hook files.
 
@@ -298,7 +299,7 @@ copy:
 
 - `copy_file(source_file, dest_file)`
 
-See [copy.hook](_plugins/buildpack/hooks/copy.hook) for documentation and examples.
+See `_plugins/buildpack/hooks/copy.hook` for documentation and examples.
 
 
 ### Preserving Recursive Directories
