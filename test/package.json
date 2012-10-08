@@ -18,10 +18,6 @@
 			"web": "http://www.matb33.me/"
 		}
 	],
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/dschnare/jekyll-tools.git"
-	},
 	"dependencies": {
 		"lessjs": "git://github.com/cloudhead/less.js.git"
 	},
