@@ -22,11 +22,11 @@ Once the above requirements are installed then you can run the following:
 
 1. Install `jekyll` and `uglifier`:
 
-	bundle
+		bundle
 
 2. Install `less` as a NPM package:
 
-	npm install
+		npm install
 
 
 *NOTE:*
