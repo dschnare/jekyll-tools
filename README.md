@@ -67,7 +67,8 @@ jsbuild:
   # Every other key represents a build target, where the key
   # is a JavaScript file relative to the 'destination' setting.
   # This form is a simple build target where only included files
-  # are listed in a sequence.
+  # are listed in a sequence. The order of these files is
+  # important because this is the order they will be combined in.
 
   inc/js/main.min.js:
     - _src/js/lib/**/*.js
