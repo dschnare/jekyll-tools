@@ -7,7 +7,8 @@
 require 'open3'
 
 # Called just before compiling. This hook can modify the main LESS
-# stylesheet before comilation.
+# stylesheet before compilation. Any changes must be saved to the
+# main LESS file.
 #
 # @pram [String] main_file The file path to the main LESS stylesheet.
 def pre_compile(main_file)
