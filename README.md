@@ -153,7 +153,7 @@ lessbuild:
 
 If you want to preserve the directory structure of your `.less` files then you can do the following:
 
-1. *Specify a directory as the include pattern.* This will copy the entire directory to the temporary directory, thus perserving the directory structure.
+***Specify a directory as the include pattern.*** This will copy the entire directory to the temporary directory, thus perserving the directory structure.
 
 ```yaml
 # _config.yml
@@ -175,7 +175,7 @@ lessbuild:
 @import 'mixins'           // Your site's less files
 ```
 
-2. *Specify a namespace for the include pattern.* This will create a new directory with the same name as your namespace in the temporary directory and place all files or directories in it.
+***Specify a namespace for the include pattern.*** This will create a new directory with the same name as your namespace in the temporary directory and place all files or directories in it.
 
 ```yaml
 # _config.yml
