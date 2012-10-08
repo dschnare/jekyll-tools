@@ -6,7 +6,7 @@ This is a simple test using the Jekyll Tools plugins.
 
 This project contains several new directories that are different than the typical Jekyll directories.
 
-- `_assets` : Contains third-party code, various documents for the project, etc.
+- `_assets` : Contains third-party code, various documents for the project, etc. This directory is mainly used for files that the `copy` plugin will copy from.
 - `_src` : Contains source files meant for compilation such as JavaScript and Less files.
 
 # Setup
