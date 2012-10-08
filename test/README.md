@@ -2,6 +2,13 @@
 
 This is a simple test using the Jekyll Tools plugins.
 
+# Layout
+
+This project contains several new directories that are different than the typical Jekyll directories.
+
+- `_assets` : Contains third-party code, various documents for the project, etc.
+- `_src` : Contains source files meant for compilation such as JavaScript and Less files.
+
 # Setup
 
 Before you can setup this project you must have the following installed:
