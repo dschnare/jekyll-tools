@@ -121,7 +121,7 @@ module Jekyll
 					FileUtils.mkdir_p(File.dirname(dest_path))
 
 					@hooks.call_hook('copy_file', path, dest_path) do |source_path, dest_path|
-						FileUtils.cp(source_path, dest_path)
+						FileUtils.cp_r(source_path, dest_path)
 					end
 				end
 			end
@@ -146,7 +146,7 @@ module Jekyll
 
 				list.map { |d| "#{d}/#{leaf}".gsub(destination, '') }
 			else
-				[File.join(@site.config['destination'], @dest_dir, @dir)]
+				[File.join(@dest_dir, @dir)]
 			end
 		end
 	end

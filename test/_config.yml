@@ -43,8 +43,14 @@ lessbuild:
 
   css/main-@hash.css:
     main: _src/less/main.less
+    include:
+      - _src/less/*.less
+      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
   css/main.css:
     main: _src/less/main.less
+    include:
+      - _src/less/*.less
+      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
 
 ###############
 # Copy Plugin #
@@ -53,4 +59,6 @@ lessbuild:
 copy:
   page[0-9]/docs:
     - _assets/*.txt
+  img:
+    - _assets/node_modules/bootstrap/img/*.*
 

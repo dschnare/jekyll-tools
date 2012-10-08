@@ -19,7 +19,8 @@
 		}
 	],
 	"dependencies": {
-		"lessjs": "git://github.com/cloudhead/less.js.git"
+		"lessjs": "git://github.com/cloudhead/less.js.git",
+		"bootstrap": "git://github.com/twitter/bootstrap.git"
 	},
 	"scripts": {
 		"preinstall": "rm -fr _assets/node_modules",

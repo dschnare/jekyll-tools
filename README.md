@@ -51,9 +51,9 @@ jsbuild:
 
 ### Config
 
-NOTE: All paths are relative to the project root unless otherwise stated.
+**NOTE:** All paths are relative to the project root unless otherwise stated.
 
-NOTE: There has to be a default hook file specified that has a 'compile' hook
+**NOTE:** There has to be a default hook file specified that has a 'compile' hook
 or a hook file specific to a build target that has a 'compile' hook in order
 for compilation to occur.
 
@@ -125,6 +125,82 @@ This plugin compiles LESS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
 in the config.yml file. If there is no `compile` hook then no compilation occurs.
 
+This plugin will copy all file globs to a temporary directory where each file is an immediate child. This has two consequences:
+
+1. All `.less` files must have a unique file name.
+2. All `@import` statements must import Less files as if they are all in the same directory.
+
+```yaml
+# _config.yml
+lessbuild:
+  hooks: _plugins/tools/hooks/lessbuild.hook
+
+  css/main.css:
+    main: _src/less/main.less
+    include:
+      - _src/less/*.less
+      - _assets/node_modules/bootstrap/less/*.less
+```
+
+```less
+// main.less
+@import 'bootstrap'     // Twitter Bootstrap's less files
+@import 'responsive'    // Twitter Bootstrap's less files
+@import 'code'          // Twitter Bootstrap's less files
+@import 'mysite-mixins' // Your site's less files
+@import 'mysite-common' // Your site's less files
+```
+
+If you want to preserve the directory structure of your `.less` files then you can do the following:
+
+1. *Specify a directory as the include pattern.* This will copy the entire directory to the temporary directory, thus perserving the directory structure.
+
+```yaml
+# _config.yml
+lessbuild:
+  hooks: _plugins/tools/hooks/lessbuild.hook
+
+  css/main.css:
+    main: _src/less/main.less
+    include:
+      - _src/less/*.less
+      - _assets/node_modules/bootstrap/less
+```
+
+```less
+// main.less
+@import 'less/bootstrap'   // Twitter Bootstrap's less files
+@import 'less/responsive'  // Twitter Bootstrap's less files
+@import 'common'           // Your site's less files
+@import 'mixins'           // Your site's less files
+```
+
+2. *Specify a namespace for the include pattern.* This will create a new directory with the same name as your namespace in the temporary directory and place all files or directories in it.
+
+```yaml
+# _config.yml
+lessbuild:
+  hooks: _plugins/tools/hooks/lessbuild.hook
+
+  css/main.css:
+    main: _src/less/main.less
+    include:
+      - _src/less/*.less
+      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
+      - { bootstrap2: _assets/node_modules/bootstrap/less }
+```
+
+```less
+// main.less
+@import 'bootstrap/bootstrap'            // From Twitter Bootstrap
+@import 'bootstrap/responsive'           // From Twitter Bootstrap
+// OR
+// @import 'bootstrap2/less/bootstrap'   // From Twitter Bootstrap
+// @import 'bootstrap2/less/responsive'  // From Twitter Bootstrap
+@import 'common'
+@import 'mixins'
+```
+
 This plugin comes with example hooks at `_plugins/tools/hooks/lessbuild.hook`.
 The extension of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
 extension can be used for hook files.
@@ -161,9 +237,9 @@ lessbuild:
 
 ### Config
 
-NOTE: All paths are relative to the project root unless otherwise stated.
+**NOTE:** All paths are relative to the project root unless otherwise stated.
 
-NOTE: There has to be a default hook file specified that has a 'compile' hook
+**NOTE:** There has to be a default hook file specified that has a 'compile' hook
 or a hook file specific to a build target that has a 'compile' hook in order
 for compilation to occur.
 
@@ -190,12 +266,15 @@ lessbuild:
 
     main: _src/less/main.less
 
-    # Sequence of files to include in the build. This is optional if
-    # the only LESS file you have is your main LESS file.
+    # Sequence of glob patterns to include in the build. This is optional if
+    # the only LESS file you have is your main LESS file. Each glob pattern
+    # can be a directory pattern or file pattern. See the documentation above
+    # for more details.
 
     include:
-      - _src/less/**/*.less
-      - _assets/vendor/bootstrap/less/*.less
+      - _src/less/*.less
+      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
+      - { thirdparty: _assets/vendor/thirdparty/less/*.less }
 
     # An optional sequence of files to exclude form the build.
 
@@ -210,15 +289,15 @@ lessbuild:
     hooks: _hooks/lessbuild-custom.rb
     main: _src/less/main.less
     include:
-      - _src/less/**/*.less
-      - _assets/vendor/bootstrap/less/*.less
+      - _src/less/*.less
+      - _assets/node_modules/bootstrap/less/*.less
 ```
 
 
 ### Hooks
 
 - `pre_compile(main_file)`
-- `compile(main_file)`
+- `compile(main_file, include_paths)`
 - `post_compile(css)`
 
 See `_plugins/tools/hooks/lessbuild.hook` for documentation and examples.
@@ -229,7 +308,7 @@ See `_plugins/tools/hooks/lessbuild.hook` for documentation and examples.
 
 ## Copy
 
-The copy plugin will copy files to a directory relative to the 'destination' setting.
+The copy plugin will copy files or directories to a directory relative to the 'destination' setting.
 
 This plugin comes with example hooks at `_plugins/tools/hooks/copy.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
@@ -240,7 +319,7 @@ The config mapping `copy` must be present in `_config.yml` for this plugin to ru
 
 ### Config
 
-NOTE: All paths are relative to the project root unless otherwise stated.
+**NOTE:** All paths are relative to the project root unless otherwise stated.
 
 
 ```yaml
@@ -257,12 +336,12 @@ copy:
 
   # Every other key represents a copy target, where the
   # key is a directory relative to the 'destination' setting.
-  # This form is a simple copy target where only files to copy
-  # are listed in a sequence.
+  # This form is a simple copy target where only files and/or
+  # directories to copy are listed in a sequence.
 
   inc/img:
     - _assets/from_design/images/**/*.*
-    - _assets/vendor/bootstrap/images/*.*
+    - _assets/node_modules/bootstrap/img/*.*
 
   # This form is an advanced copy target where custom settings
   # are specified.
@@ -279,11 +358,11 @@ copy:
 
     preserve_dirs: false
 
-    # Sequence of files to copy.
+    # Sequence of files and/or directories to copy.
 
     include:
       - _assets/from_design/images/**/*.*
-      - _assets/vendor/bootstrap/images/*.*
+      - _assets/node_modules/bootstrap/img/*.*
 
     # An optional sequence of files to exclude from copying.
 
@@ -316,17 +395,17 @@ will be copied to the root of its copy target: `{destination}/inc/img/{file.ext}
 ```yaml
 copy:
   inc/img/somedir:
-    - _vendor/bootstrap/img/**/*.*
+    - _assets/node_modules/bootstrap/img/**/*.*
 ```
 
 Recursive directories can be preserved by setting the `preserve_dirs` mapping to true.
 All images in this example will now have a copy path: `{destination}/inc/img/somedir/{recursive-directories}/{file.ext}`
 
 This setting has the affect of maintaining the path at the first recursive glob of each included file.
-In the following example the directory structure after `_vendor/bootstrap/img` for all images will be preserved when copying.
+In the following example the directory structure after `_assets/node_modules/bootstrap/img` for all images will be preserved when copying.
 
 ```
-_vendor/bootstrap/img/**/*.*
+_assets/node_modules/bootstrap/img/**/*.*
 ```
 
 The `preserve_dirs` mapping can be specified at the top-level or on an individual copy target. This mapping

@@ -16,6 +16,15 @@ class Hash
 	end
 end
 
+class NamespacedString < String
+	attr_reader :namespace
+
+	def initialize(s, namespace)
+		super(s)
+		@namespace = namespace
+	end
+end
+
 
 module FileHelpers
 	def self.get_files(incl, excl)
@@ -23,6 +32,29 @@ module FileHelpers
 
 		incl.each do |pattern|
 			files = files.concat(Dir.glob(pattern))
+		end
+
+		# Exclude all directories.
+		files.delete_if { |file| File.directory?(file) }
+
+		excl.each do |pattern|
+			exclude_files(files, pattern)
+		end
+
+		files
+	end
+
+	def self.get_namespaced_files(incl, excl)
+		files = []
+
+		incl.each do |pattern|
+			if pattern.kind_of?(Hash)
+				pattern.each_pair do |k, v|
+					files = files.concat(Dir.glob(v).map { |f| NamespacedString.new(f, k) })
+				end
+			else
+				files = files.concat(Dir.glob(pattern))
+			end
 		end
 
 		excl.each do |pattern|

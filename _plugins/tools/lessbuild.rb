@@ -164,7 +164,7 @@ module Jekyll
 				source_modified = false
 
 				excludes << main
-				files = FileHelpers.get_files(includes, excludes)
+				files = FileHelpers.get_namespaced_files(includes, excludes)
 				files << main
 
 				files.each do |file|
@@ -179,14 +179,27 @@ module Jekyll
 				if source_modified
 					tmpdir = File.join(Dir.tmpdir, 'lessbuild')
 					Dir.mkdir tmpdir if !File.directory?(tmpdir)
-					FileUtils.cp(files, tmpdir)
+					include_paths = [tmpdir];
+
+					namespaced_files = [];
+					files.each { |f| namespaced_files << f if f.respond_to?(:namespace) }
+					files.delete_if { |f| f.respond_to?(:namespace) }
+
+					FileUtils.cp_r(files, tmpdir)
+
+					namespaced_files.each do |f|
+						dest = File.join(tmpdir, f.namespace)
+						FileUtils.mkdir_p(dest) unless File.directory?(dest)
+						include_paths << dest unless include_paths.include?(dest)
+						FileUtils.cp_r(f.to_s, dest)
+					end
 
 					tmp_main_file = File.join(tmpdir, File.basename(main))
 
 					if File.exist? tmp_main_file
 						@hooks.call_hook('pre_compile', tmp_main_file)
 
-						output = @hooks.call_hook('compile', tmp_main_file) do |main_file|
+						output = @hooks.call_hook('compile', tmp_main_file, include_paths.join(':')) do |main_file, include_paths|
 							File.read(main_file)
 						end
 
