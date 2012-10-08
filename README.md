@@ -1,6 +1,6 @@
 # Overview
 
-The Jekyll Buildpack is a set of hook-driven Jekyll plugins that help compile JS/LESS files and copy files to your site destination.
+The Jekyll Tools is a set of hook-driven Jekyll plugins that help compile JS/LESS files and copy files to your site destination.
 
 
 
@@ -18,7 +18,7 @@ This plugin will combine JavaScript files and optionally compile the combined fi
 Compilation is determined by hooks specified in the `_config.yml` file. If there is
 no `compile` hook then no compilation occurs.
 
-This plugin comes with example hooks at `_plugins/buildpack/hooks/jsbuild.hook`. The extension
+This plugin comes with example hooks at `_plugins/tools/hooks/jsbuild.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any extension can be used for hook files.
 
 The config mapping `jsbuild` must be present in `_config.yml` for this plugin to run.
@@ -32,7 +32,7 @@ relative to a specific page.
 
 ```yaml
 jsbuild:
-  hooks: _plugins/buildpack/hooks/jsbuild.hook
+  hooks: _plugins/tools/hooks/jsbuild.hook
 
   js/main-@hash.js:
     - _src/js/lib/**/*.js
@@ -62,7 +62,7 @@ jsbuild:
   # An optional path to a custom hook file. This will be the
   # default hooks unless overriden by a build target.
 
-  hooks: _plugins/buildpack/hooks/jsbuild.hook
+  hooks: _plugins/tools/hooks/jsbuild.hook
 
   # Every other key represents a build target, where the key
   # is a JavaScript file relative to the 'destination' setting.
@@ -112,7 +112,7 @@ jsbuild:
 - `compile(js)`
 - `post_compile(js)`
 
-See `_plugins/buildpack/hooks/jsbuild.hook` for documentation and examples.
+See `_plugins/tools/hooks/jsbuild.hook` for documentation and examples.
 
 
 ---
@@ -124,7 +124,7 @@ This plugin compiles LESS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
 in the config.yml file. If there is no `compile` hook then no compilation occurs.
 
-This plugin comes with example hooks at `_plugins/buildpack/hooks/lessbuild.hook`.
+This plugin comes with example hooks at `_plugins/tools/hooks/lessbuild.hook`.
 The extension of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
 extension can be used for hook files.
 
@@ -139,7 +139,7 @@ relative to a specific page.
 
 ```yaml
 lessbuild:
-  hooks: _plugins/buildpack/hooks/less.hook
+  hooks: _plugins/tools/hooks/less.hook
 
   css/main-@hash.css:
     main: _src/less/main.less
@@ -173,7 +173,7 @@ lessbuild:
   # Your hook file must contain a 'compile' hook for
   # compilation to occur.
 
-  hooks: _plugins/buildpack/hooks/lessbuild.hook
+  hooks: _plugins/tools/hooks/lessbuild.hook
 
   # Every other key represents a build target, where
   # the key is a CSS file relative to the 'destination' setting.
@@ -220,7 +220,7 @@ lessbuild:
 - `compile(main_file)`
 - `post_compile(css)`
 
-See `_plugins/buildpack/hooks/lessbuild.hook` for documentation and examples.
+See `_plugins/tools/hooks/lessbuild.hook` for documentation and examples.
 
 
 ---
@@ -230,7 +230,7 @@ See `_plugins/buildpack/hooks/lessbuild.hook` for documentation and examples.
 
 The copy plugin will copy files to a directory relative to the 'destination' setting.
 
-This plugin comes with example hooks at `_plugins/buildpack/hooks/copy.hook`. The extension
+This plugin comes with example hooks at `_plugins/tools/hooks/copy.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
 extension can be used for hook files.
 
@@ -247,7 +247,7 @@ copy:
   # An optional path to a custom hook file.
   # This will be the default hooks unless overriden.
 
-  hooks: _plugins/buildpack/hooks/copy.hook
+  hooks: _plugins/tools/hooks/copy.hook
 
   # An optional setting to preserve recursive
   # directories in file patterns. Default is false.
@@ -304,7 +304,7 @@ copy:
 
 - `copy_file(source_file, dest_file)`
 
-See `_plugins/buildpack/hooks/copy.hook` for documentation and examples.
+See `_plugins/tools/hooks/copy.hook` for documentation and examples.
 
 
 ### Preserving Recursive Directories
