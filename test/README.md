@@ -29,7 +29,7 @@ Once the above requirements are installed then you can run the following:
 		npm install
 
 
-**NOTE:** Twitter Bootstrap and the TypeScript compiler is not required, but they are included in this example project to show you how you might use them.
+**NOTE:** Twitter Bootstrap and the TypeScript compiler are not required, but they are included in this example project to show you how you might use them.
 
 **NOTE:** If you're familiar with NPM and the `node_modules` directory it places all locally installed modules you'll notice that after installing there is no `node_modules` in this project's directory. This is because the `package.json` file contains scripts to move the `node_modules` directory to `_assets/node_modules`.
 
