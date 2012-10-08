@@ -6,38 +6,37 @@ module Jekyll
 	class CopyGenerator < Generator
 		priority :lowest
 		def generate(site)
-			@hooks = Hooks.new if @hooks.nil?
 			config = site.config
 
-			if config.has_key? 'copy'
-				@settings = config['copy']
-				@hooks << @settings['hooks']
-				@preserve_dirs = @settings.get('preserve_dirs', false)
-				@settings.delete 'hooks'
-				@settings.delete 'preserve_dirs'
+			if config.has_key? 'copy' and config['copy'].kind_of?(Hash)
+				default_hooks = Hooks.new(config['copy']['hooks'])
+				@preserve_dirs = config['copy'].get('preserve_dirs', false)
+
+				config['copy'].delete 'hooks'
+				config['copy'].delete 'preserve_dirs'
 
 				# Iterate over each target.
 				# Each key is the destination directory where to copy the files to.
-				@settings.each_pair do |copy_target, settings|
+				config['copy'].each_pair do |copy_target, settings|
 					# The settings for each target could be an array of file patterns to include.
 					if settings.kind_of?(Array)
 						settings = {'include' => settings}
 					end
 
-					@hooks << settings['hooks']
+					copy_target_hooks = Hooks.new(settings['hooks'], default_hooks)
 					files = getFilesToCopy(settings)
 
 					if settings.has_key? 'include'
 						copy_target = File.dirname(copy_target) if File.file?(copy_target)
-						createJekyllFiles(site, copy_target, files)
+						createJekyllFiles(site, copy_target, files, copy_target_hooks)
 					end
 				end
 			end
 		end
 
-		def createJekyllFiles(site, copy_target, files)
+		def createJekyllFiles(site, copy_target, files, hooks)
 			files.each do |file|
-				site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, @hooks)
+				site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks)
 			end
 		end
 

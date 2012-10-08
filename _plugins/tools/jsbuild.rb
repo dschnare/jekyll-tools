@@ -89,11 +89,10 @@ module Jekyll
 
 	class JSBuildGenerator < Generator
 		def generate(site)
-			@hooks = Hooks.new if @hooks.nil?
 			config = site.config
 
-			if config.has_key? 'jsbuild'
-				@hooks << config['jsbuild']['hooks']
+			if config.has_key? 'jsbuild' and config['jsbuild'].kind_of?(Hash)
+				default_hooks = Hooks.new(config['jsbuild']['hooks'])
 				config['jsbuild'].delete 'hooks'
 
 				config['jsbuild'].each_pair do |build_target, settings|
@@ -102,9 +101,9 @@ module Jekyll
 						settings = {'include' => settings}
 					end
 
-					@hooks << settings['hooks']
+					build_target_hooks = Hooks.new(settings['hooks'], default_hooks)
 					settings.delete 'hooks'
-					site.static_files << CompiledJavaScriptFile.new(site, build_target, settings, @hooks)
+					site.static_files << CompiledJavaScriptFile.new(site, build_target, settings, build_target_hooks)
 				end
 			end
 		end

@@ -6,32 +6,25 @@ will enqueue the hook file so that newew hooks files are searched first when cal
 =end
 class Hooks
 	@@hooks = {}
+	attr_reader :hook_file
 
-	def initialize
-		@hook_files = []
-	end
-
-	def add_hooks(hook_file)
-		if hook_file.kind_of?(String) and File.exist?(hook_file)
-			@hook_files.unshift(hook_file)
-		end
-	end
-
-	def <<(hook_file)
-		add_hooks(hook_file)
+	def initialize(hooks_file, parent=nil)
+		@hooks_file = hooks_file
+		@parent = parent
 	end
 
 	def can_call_hook?(hook)
 		result = false
 
-		@hook_files.each do |hook_file|
-			begin
-				hooks = get_hooks(hook_file)
-				result = true if hooks.respond_to?(hook.to_sym)
-				break
-			rescue
-				result = false
-			end
+		begin
+			hooks = get_hooks()
+			result = true if hooks.respond_to?(hook.to_sym)
+		rescue
+			result = false
+		end
+
+		if !result and !@parent.nil?
+			result = @parent.can_call_hook?(hook)
 		end
 
 		result
@@ -39,18 +32,17 @@ class Hooks
 
 	# If a block is given and no hook can be found then
 	# the block will be called (i.e. the block will be the fallback).
-	def call_hook(hook, *args)
+	def call_hook(hook, *args, &block)
 		result = nil
 		method = nil
 
-		@hook_files.each do |hook_file|
-			hooks = get_hooks(hook_file)
-			method = hooks.method(hook) if hooks.respond_to?(hook.to_sym)
+		hooks = get_hooks()
+		method = hooks.method(hook) if hooks.respond_to?(hook.to_sym)
 
-			if method
-				result = method.call(*args)
-				break
-			end
+		if method
+			result = method.call(*args)
+		elsif !@parent.nil?
+			return @parent.call_hook(hook, *args, &block)
 		end
 
 		if result.nil? and block_given?
@@ -62,14 +54,17 @@ class Hooks
 
 	private
 
-	def get_hooks(hook_file)
-		if @@hooks.has_key?(hook_file)
-			@@hooks[hook_file]
+	def get_hooks()
+		if @hooks_file.nil?
+			hooks = Class.new
+			hooks.new
+		elsif @@hooks.has_key?(@hooks_file)
+			@@hooks[@hooks_file]
 		else
-			script = File.read(hook_file)
+			script = File.read(@hooks_file)
 			hooks = Class.new
 			hooks.class_eval(script)
-			@@hooks[hook_file] = hooks.new
+			@@hooks[@hooks_file] = hooks.new
 		end
 	end
 end

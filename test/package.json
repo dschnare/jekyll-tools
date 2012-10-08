@@ -20,7 +20,8 @@
 	],
 	"dependencies": {
 		"lessjs": "git://github.com/cloudhead/less.js.git",
-		"bootstrap": "git://github.com/twitter/bootstrap.git"
+		"bootstrap": "git://github.com/twitter/bootstrap.git",
+		"typescript": "*"
 	},
 	"scripts": {
 		"preinstall": "rm -fr _assets/node_modules",

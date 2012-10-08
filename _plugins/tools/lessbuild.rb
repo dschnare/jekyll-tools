@@ -90,17 +90,16 @@ module Jekyll
 
 	class LessBuildGenerator < Generator
 		def generate(site)
-			@hooks = Hooks.new if @hooks.nil?
 			config = site.config
 
-			if config.has_key? 'lessbuild'
-				@hooks << config['lessbuild']['hooks']
+			if config.has_key? 'lessbuild' and config['lessbuild'].kind_of?(Hash)
+				default_hooks = Hooks.new(config['lessbuild']['hooks'])
 				config['lessbuild'].delete 'hooks'
 
 				config['lessbuild'].each_pair do |build_target, settings|
-					@hooks << settings['hooks']
+					build_target_hooks = Hooks.new(settings['hooks'], default_hooks)
 					settings.delete 'hooks'
-					site.static_files << CompiledLessFile.new(site, build_target, settings, @hooks)
+					site.static_files << CompiledLessFile.new(site, build_target, settings, build_target_hooks)
 				end
 			end
 		end

@@ -27,11 +27,18 @@ permalink:   pretty
 jsbuild:
   hooks: ../_plugins/tools/hooks/jsbuild.hook
 
+  # Compile the third-party TypeScript files first
+  # and save them at _src/_js
+  "../_src/_js/some-framework.js":
+    hooks: _src/hooks/typescript.rb
+    include:
+      - _assets/vendor/some-framework/module.ts
+  # Now we can use the compiled TypeScript files.
   js/main-@hash.js:
-    - _assets/vendor/some-framework/module.js
+    - _src/_js/some-framework.js
     - _src/js/main.js
   js/main.js:
-    - _assets/vendor/some-framework/module.js
+    - _src/_js/some-framework.js
     - _src/js/main.js
 
 ####################
