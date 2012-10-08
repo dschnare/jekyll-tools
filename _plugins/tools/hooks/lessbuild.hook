@@ -1,7 +1,7 @@
 # NOTE: This file has a .hook extension so Jekyll won't load it as a Ruby file.
 # You can use any extension you want for your hooks so long as the hook file is a valid Ruby script.
 
-# Requires lessjs to be available at '_assets/vendor/lessjs/bin/lessc'
+# Requires lessjs to be available at '_assets/node_modules/less/bin/lessc'
 # Requires Nodejs to be installed.
 
 require 'open3'
@@ -21,7 +21,7 @@ end
 # @pram [String] main_file The file path to the main LESS stylesheet.
 # @return [String] The compiled result.
 def compile(main_file)
-	lessjs = '_assets/vendor/lessjs/bin/lessc'
+	lessjs = '_assets/node_modules/less/bin/lessc'
 	content = File.read(main_file)
 	result = content
 	dir = File.dirname(main_file)

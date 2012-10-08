@@ -12,7 +12,7 @@ url:         http://localhost:4000
 source:      .
 destination: _site
 plugins:     ../_plugins
-exclude:     ['_assets', '_src', 'Gemfile', 'Gemfile.lock']
+exclude:     ['_assets', '_src', 'README.md', 'Gemfile', 'Gemfile.lock', 'package.json']
 
 future:      true
 lsi:         false
@@ -25,7 +25,7 @@ permalink:   pretty
 ##################
 
 jsbuild:
-  hooks: ../_plugins/buildpack/hooks/jsbuild.hook
+  hooks: ../_plugins/tools/hooks/jsbuild.hook
 
   js/main-@hash.js:
     - _assets/vendor/some-framework/module.js
@@ -39,7 +39,7 @@ jsbuild:
 ####################
 
 lessbuild:
-  hooks: ../_plugins/buildpack/hooks/lessbuild.hook
+  hooks: ../_plugins/tools/hooks/lessbuild.hook
 
   css/main-@hash.css:
     main: _src/less/main.less
