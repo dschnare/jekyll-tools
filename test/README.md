@@ -8,7 +8,7 @@ Before you can setup this project you must have the following installed:
 
 - [Git](http://git-scm.com/) : This is required so NPM can retrieve the lessjs module via git.
 - [Ruby](http://www.ruby-lang.org/) : Required for Jekyll, plugins and Uglifier.
-- [Node with NPM](http://nodejs.org/) : Required for installing lesscss and running the lesscss compiler.
+- [Node with NPM](http://nodejs.org/) : Required for installing lessjs and running the lessjs compiler.
 - [Bundler gem](http://gembundler.com/) : Required for installing our gems.
 
 Once the above requirements are installed then you can run the following:
