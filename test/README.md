@@ -24,7 +24,7 @@ Once the above requirements are installed then you can run the following:
 
 		bundle
 
-2. Install `less` as a NPM package:
+2. Install `lessjs` as a NPM package:
 
 		npm install
 
