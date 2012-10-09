@@ -1,5 +1,6 @@
 module SOME_FRAMEWORK {
-	export function toUpper(s) {
+	export var version = '0.0.1';
+	export function toUpper(s:string):string {
 		return s.toUpperCase();
 	}
 }
