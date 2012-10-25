@@ -69,3 +69,41 @@ copy:
   img:
     - _assets/node_modules/bootstrap/img/*.*
 
+
+# TEST #
+tools:
+  defaults:
+    jsbuild:
+      hooks: ../_plugins/tools/hooks/jsbuild.hook
+    lessbuild:
+      hooks: ../_plugins/tools/hooks/lessbuild.hook
+  tasks:
+    - jsbuild:
+      "../_src/_js/some-framework.js":
+        hooks: _src/hooks/typescript.rb
+        include:
+          - _assets/vendor/some-framework/module.ts
+      js/main-@hash.js:
+        - _src/_js/some-framework.js
+        - _src/js/main.js
+    - lessbuild:
+      css/main-@hash.css:
+        main: _src/less/main.less
+        include:
+          - _src/less/*.less
+          - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
+    - jsbuild:
+      js/main.js:
+        - _src/_js/some-framework.js
+        - _src/js/main.js
+    - lessbuild:
+      css/main.css:
+        main: _src/less/main.less
+        include:
+          - _src/less/*.less
+          - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
+    - copy:
+      page[0-9]/docs:
+        - _assets/*.txt
+      img:
+        - _assets/node_modules/bootstrap/img/*.*
