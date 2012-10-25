@@ -5,6 +5,7 @@ require_relative 'lib/hooks.rb'
 module Jekyll
 	class CopyGenerator < Generator
 		priority :lowest
+
 		def generate(site)
 			config = site.config
 
@@ -36,7 +37,19 @@ module Jekyll
 
 		def createJekyllFiles(site, copy_target, files, hooks)
 			files.each do |file|
-				site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks)
+				# If the file is refering to file(s) that dont exist yet
+				# then we create a CompositeCopiedStaticFile that will
+				# generate new static files when it is about to be written.
+				# These new static files are appended to site#static_files
+				# as the array is being traversed. This works perfectly
+				# fine since the array#each enumerator will enumerate newly added items.
+				if file.has_key? :getFiles
+					site.static_files << CompositeCopiedStaticFile.new(site, file, copy_target, hooks)
+				# Otherwise the file we are about to copy actual exists so we just create
+				# a CopiedStaticFile and append it to site#static_files.
+				else
+					site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks)
+				end
 			end
 		end
 
@@ -76,23 +89,73 @@ module Jekyll
 						}
 					end
 				else
-					Dir.glob pattern do |source|
+					sources = Dir.glob pattern
+					# This include pattern does not exist yet.
+					# This pattern may be pointing at a file that
+					# has yet to be generated so we create a proc that will
+					# run this pattern at a later time.
+					if sources.empty?
 						files << {
-							:base => File.dirname(source),
-							:dir => '',
-							:name => File.basename(source)
+							:getFiles => Proc.new do
+								_files = []
+
+								Dir.glob pattern do |source|
+									_files << {
+										:base => File.dirname(source),
+										:dir => '',
+										:name => File.basename(source)
+									}
+								end
+
+								excludes.each do |pattern|
+									Dir.glob pattern do |excl|
+										_files.delete_if { |f| File.join(f[:base], f[:dir], f[:name]) == excl }
+									end
+								end
+
+								_files
+							end
 						}
+					else
+						sources.each do |source|
+							files << {
+								:base => File.dirname(source),
+								:dir => '',
+								:name => File.basename(source)
+							}
+						end
 					end
 				end
 			end
 
 			excludes.each do |pattern|
 				Dir.glob pattern do |excl|
-					files.delete_if { |f| File.join(f[:base], f[:dir], f[:name]) == excl }
+					files.delete_if do |f|
+						File.join(f[:base], f[:dir], f[:name]) == excl unless f.has_key? :getFiles
+					end
 				end
 			end
 
 			files
+		end
+	end
+
+	class CompositeCopiedStaticFile < StaticFile
+		def initialize(site, filedata, dest_dir, hooks)
+			super(site, '', '', '')
+			@filedata = filedata
+			@dest_dir = dest_dir
+			@hooks = hooks
+		end
+
+		def write(dest)
+			files = @filedata[:getFiles].call()
+
+			files.each do |file|
+				@site.static_files << CopiedStaticFile.new(@site, file[:base], file[:dir], file[:name], @dest_dir, @hooks)
+			end
+
+			false
 		end
 	end
 
@@ -109,6 +172,10 @@ module Jekyll
 
 		def write(dest)
 			written = false
+
+			if @name == 'main.js'
+				puts "#{getDirs} -- #{path} -- #{File.exists?(path)}"
+			end
 
 			getDirs.each do |d|
 				dest_path = File.join(dest, d, '', @name)
