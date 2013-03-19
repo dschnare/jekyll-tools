@@ -12,9 +12,9 @@ module Jekyll
 		@@css = {}
 		def self.css() @@css end
 
-		alias :site_payload_lessbuild :site_payload
+		alias :site_payload_cssbuild :site_payload
 		def site_payload
-			payload = site_payload_lessbuild
+			payload = site_payload_cssbuild
 			payload['site'] = payload['site'].deep_merge({
 				'css' => @@css.dup
 			})
@@ -68,16 +68,16 @@ module Jekyll
 	end
 
 	class Page
-		alias :to_liquid_lessbuild :to_liquid
+		alias :to_liquid_cssbuild :to_liquid
 		def to_liquid
-			CSSToLiquidRelative.to_liquid(to_liquid_lessbuild)
+			CSSToLiquidRelative.to_liquid(to_liquid_cssbuild)
 		end
 	end
 
 	class Post
-		alias :to_liquid_lessbuild :to_liquid
+		alias :to_liquid_cssbuild :to_liquid
 		def to_liquid
-			CSSToLiquidRelative.to_liquid(to_liquid_lessbuild)
+			CSSToLiquidRelative.to_liquid(to_liquid_cssbuild)
 		end
 	end
 
@@ -85,8 +85,8 @@ module Jekyll
 	# The Tool #
 	############
 
-	class LessBuildGenerator < Tools::Tool
-		name :lessbuild
+	class CssBuildGenerator < Tools::Tool
+		name :cssbuild
 
 		def generate(site)
 			defaults = settings['defaults']
@@ -95,12 +95,12 @@ module Jekyll
 
 			settings.each_pair do |build_target, target_settings|
 				build_target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
-				site.static_files << CompiledLessFile.new(site, build_target, target_settings, build_target_hooks)
+				site.static_files << CompiledCssFile.new(site, build_target, target_settings, build_target_hooks)
 			end
 		end
 	end
 
-	class CompiledLessFile < StaticFile
+	class CompiledCssFile < StaticFile
 		def initialize(site, file, settings, hooks)
 			super(site, site.source, File.dirname(file), File.basename(file))
 			@file = file
@@ -171,7 +171,7 @@ module Jekyll
 				end
 
 				if source_modified
-					tmpdir = File.join(Dir.tmpdir, 'lessbuild')
+					tmpdir = File.join(Dir.tmpdir, 'cssbuild')
 					Dir.mkdir tmpdir if !File.directory?(tmpdir)
 					include_paths = [tmpdir];
 

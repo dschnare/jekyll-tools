@@ -1,6 +1,3 @@
-# NOTE: This file has a .hook extension so Jekyll won't load it as a Ruby file.
-# You can use any extension you want for your hooks so long as the hook file is a valid Ruby script.
-
 # Requires the 'uglifier' gem to be installed.
 
 require 'uglifier'

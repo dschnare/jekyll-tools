@@ -12,7 +12,7 @@ url:         http://localhost:4000
 source:      .
 destination: _site
 plugins:     ../_plugins
-exclude:     ['README.md', 'Gemfile', 'Gemfile.lock', 'package.json']
+exclude:     ['README.md', 'Gemfile', 'Gemfile.lock', 'package.json' 'node_modules']
 
 future:      true
 lsi:         false
@@ -29,8 +29,8 @@ tools:
   defaults:
     jsbuild:
       hooks: ../_hooks/jsbuild.rb
-    lessbuild:
-      hooks: ../_hooks/lessbuild.rb
+    cssbuild:
+      hooks: ../_hooks/cssbuild-less.rb
   tasks:
     - jsbuild:
         "../_src/_js/some-framework.js":
@@ -43,7 +43,7 @@ tools:
         js/main.js:
           - _src/_js/some-framework.js
           - _src/js/main.js
-    - lessbuild:
+    - cssbuild:
         css/main-@hash.css:
           main: _src/less/main.less
           include:

@@ -5,7 +5,7 @@ The Jekyll Tools is a set of hook-driven Jekyll plugins that help compile JS/LES
 
 # Installation
 
-Copy the `_plugins` folder to your Jekyll project or copy `_plugins/tools` to your Jekyll project's `_plugin` folder.
+Copy the `_plugins`, `_hooks` and `_tools` folder to your Jekyll project.
 
 
 # Test
@@ -15,16 +15,16 @@ To experiment with an example quickly see the `test` directory.
 
 # Documentation
 
-## JSBuild
+## jsbuild
 
-This plugin will combine JavaScript files and optionally compile the combined file.
+This tool will combine JavaScript files and optionally compile the combined file.
 Compilation is determined by hooks specified in the `_config.yml` file. If there is
 no `compile` hook then no compilation occurs.
 
-This plugin comes with example hooks at `_plugins/tools/hooks/jsbuild.hook`. The extension
+This tool comes with example hooks at `_plugins/tools/hooks/jsbuild.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any extension can be used for hook files.
 
-The config mapping `jsbuild` must be present in `_config.yml` for this plugin to run.
+The config mapping `jsbuild` must be present in `_config.yml` for this tool to run.
 
 
 ### Template Data
@@ -122,13 +122,13 @@ See `_plugins/tools/hooks/jsbuild.hook` for documentation and examples.
 ---
 
 
-## LessBuild
+## lessbuild
 
-This plugin compiles LESS stylesheets starting at a main stylesheet that
+This tool compiles LESS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
 in the config.yml file. If there is no `compile` hook then no compilation occurs.
 
-This plugin will copy all file globs to a temporary directory where each file is an immediate child. This has two consequences:
+This tool will copy all file globs to a temporary directory where each file is an immediate child. This has two consequences:
 
 1. All `.less` files must have a unique file name.
 2. All `@import` statements must import Less files as if they are all in the same directory.
@@ -309,15 +309,15 @@ See `_plugins/tools/hooks/lessbuild.hook` for documentation and examples.
 ---
 
 
-## Copy
+## copy
 
-The copy plugin will copy files or directories to a directory relative to the 'destination' setting.
+The copy tool will copy files or directories to a directory relative to the 'destination' setting.
 
-This plugin comes with example hooks at `_plugins/tools/hooks/copy.hook`. The extension
+This tool comes with example hooks at `_plugins/tools/hooks/copy.hook`. The extension
 of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
 extension can be used for hook files.
 
-The config mapping `copy` must be present in `_config.yml` for this plugin to run.
+The config mapping `copy` must be present in `_config.yml` for this tool to run.
 
 
 ### Config

@@ -1,6 +1,3 @@
-# NOTE: This file has a .hook extension so Jekyll won't load it as a Ruby file.
-# You can use any extension you want for your hooks so long as the hook file is a valid Ruby script.
-
 require 'fileutils'
 
 # Copies a source file to a destination.
