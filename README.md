@@ -3,11 +3,14 @@
 The Jekyll Tools is a set of hook-driven Jekyll plugins that help compile JS/LESS files and copy files to your site destination.
 
 
+# Installation
+
+Copy the `_plugins` folder to your Jekyll project or copy `_plugins/tools` to your Jekyll project's `_plugin` folder.
+
 
 # Test
 
 To experiment with an example quickly see the `test` directory.
-
 
 
 # Documentation

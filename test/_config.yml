@@ -12,7 +12,7 @@ url:         http://localhost:4000
 source:      .
 destination: _site
 plugins:     ../_plugins
-exclude:     ['_assets', '_src', 'README.md', 'Gemfile', 'Gemfile.lock', 'package.json']
+exclude:     ['README.md', 'Gemfile', 'Gemfile.lock', 'package.json']
 
 future:      true
 lsi:         false
@@ -20,90 +20,42 @@ pygments:    false
 markdown:    maruku
 permalink:   pretty
 
-##################
-# JSBuild Plugin #
-##################
+#########################
+# Jekyll Tools Settings #
+#########################
 
-jsbuild:
-  hooks: ../_plugins/tools/hooks/jsbuild.hook
-
-  # Compile the third-party TypeScript files first
-  # and save them at _src/_js
-  "../_src/_js/some-framework.js":
-    hooks: _src/hooks/typescript.rb
-    include:
-      - _assets/vendor/some-framework/module.ts
-  # Now we can use the compiled TypeScript files.
-  js/main-@hash.js:
-    - _src/_js/some-framework.js
-    - _src/js/main.js
-  js/main.js:
-    - _src/_js/some-framework.js
-    - _src/js/main.js
-
-####################
-# LessBuild Plugin #
-####################
-
-lessbuild:
-  hooks: ../_plugins/tools/hooks/lessbuild.hook
-
-  css/main-@hash.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/*.less
-      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
-  css/main.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/*.less
-      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
-
-###############
-# Copy Plugin #
-###############
-
-copy:
-  page[0-9]/docs:
-    - _assets/*.txt
-  img:
-    - _assets/node_modules/bootstrap/img/*.*
-
-
-# TEST #
 tools:
+  path: ../_tools
   defaults:
     jsbuild:
-      hooks: ../_plugins/tools/hooks/jsbuild.hook
+      hooks: ../_hooks/jsbuild.rb
     lessbuild:
-      hooks: ../_plugins/tools/hooks/lessbuild.hook
+      hooks: ../_hooks/lessbuild.rb
   tasks:
     - jsbuild:
-      "../_src/_js/some-framework.js":
-        hooks: _src/hooks/typescript.rb
-        include:
-          - _assets/vendor/some-framework/module.ts
-      js/main-@hash.js:
-        - _src/_js/some-framework.js
-        - _src/js/main.js
+        "../_src/_js/some-framework.js":
+          hooks: _src/hooks/typescript.rb
+          include:
+            - _assets/vendor/some-framework/module.ts
+        js/main-@hash.js:
+          - _src/_js/some-framework.js
+          - _src/js/main.js
+        js/main.js:
+          - _src/_js/some-framework.js
+          - _src/js/main.js
     - lessbuild:
-      css/main-@hash.css:
-        main: _src/less/main.less
-        include:
-          - _src/less/*.less
-          - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
-    - jsbuild:
-      js/main.js:
-        - _src/_js/some-framework.js
-        - _src/js/main.js
-    - lessbuild:
-      css/main.css:
-        main: _src/less/main.less
-        include:
-          - _src/less/*.less
-          - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
+        css/main-@hash.css:
+          main: _src/less/main.less
+          include:
+            - _src/less/*.less
+            - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
+        css/main.css:
+            main: _src/less/main.less
+            include:
+              - _src/less/*.less
+              - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
     - copy:
-      page[0-9]/docs:
-        - _assets/*.txt
-      img:
-        - _assets/node_modules/bootstrap/img/*.*
+        page[0-9]/docs:
+          - _assets/*.txt
+        img:
+          - _assets/node_modules/bootstrap/img/*.*

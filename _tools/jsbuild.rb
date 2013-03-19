@@ -1,7 +1,5 @@
 require 'fileutils'
 require 'digest/md5'
-require_relative 'lib/helpers.rb'
-require_relative 'lib/hooks.rb'
 
 module Jekyll
 	########################################################
@@ -13,10 +11,9 @@ module Jekyll
 		@@js = {}
 		def self.js() @@js end
 
-		alias :js_site_payload :site_payload
-
+		alias :site_payload_jsbuild :site_payload
 		def site_payload
-			payload = js_site_payload
+			payload = site_payload_jsbuild
 			payload['site'] = payload['site'].deep_merge({
 				'js' => @@js.dup
 			})
@@ -70,41 +67,41 @@ module Jekyll
 	end
 
 	class Page
-		alias :js_to_liquid_orig :to_liquid
+		alias :to_liquid_jsbuild :to_liquid
 		def to_liquid
-			JSToLiquidRelative.to_liquid(js_to_liquid_orig)
+			JSToLiquidRelative.to_liquid(to_liquid_jsbuild)
 		end
 	end
 
 	class Post
-		alias :js_to_liquid_orig :to_liquid
+		alias :to_liquid_jsbuild :to_liquid
 		def to_liquid
-			JSToLiquidRelative.to_liquid(js_to_liquid_orig)
+			JSToLiquidRelative.to_liquid(to_liquid_jsbuild)
 		end
 	end
 
-	##############
-	# The Plugin #
-	##############
+	############
+	# The Tool #
+	############
 
-	class JSBuildGenerator < Generator
-		def generate(site)
-			config = site.config
+	class JSBuildGenerator < Tools::Tool
+		name :jsbuild
 
-			if config.has_key? 'jsbuild' and config['jsbuild'].kind_of?(Hash)
-				default_hooks = Hooks.new(config['jsbuild']['hooks'])
-				config['jsbuild'].delete 'hooks'
+		def generate(site, settings)
+			defaults = settings['defaults']
+			settings.delete('defaults')
+			default_hooks = Hooks.new(defaults['hooks'])
 
-				config['jsbuild'].each_pair do |build_target, settings|
-					# The settings for each target could be an array of file patterns to include.
-					if settings.kind_of?(Array)
-						settings = {'include' => settings}
-					end
-
-					build_target_hooks = Hooks.new(settings['hooks'], default_hooks)
-					settings.delete 'hooks'
-					site.static_files << CompiledJavaScriptFile.new(site, build_target, settings, build_target_hooks)
+			settings.each_pair do |build_target, target_settings|
+				# The settings for each target could be an array of file patterns to include.
+				if target_settings.kind_of?(Array)
+					target_settings = {'include' => target_settings}
+				else
+					target_settings = defaults.merge(target_settings)
 				end
+
+				target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
+				site.static_files << CompiledJavaScriptFile.new(site, build_target, target_settings, target_hooks)
 			end
 		end
 	end

@@ -1,36 +1,28 @@
 require 'fileutils'
-require_relative 'lib/helpers.rb'
-require_relative 'lib/hooks.rb'
 
 module Jekyll
-	class CopyGenerator < Generator
-		priority :lowest
+	class CopyGenerator < Tools::Tool
+		name :copy
 
-		def generate(site)
-			config = site.config
+		def generate(site, settings)
+			defaults = settings['defaults']
+			settings.delete('defaults')
+			default_hooks = Hooks.new(defaults['hooks'])
 
-			if config.has_key? 'copy' and config['copy'].kind_of?(Hash)
-				default_hooks = Hooks.new(config['copy']['hooks'])
-				@preserve_dirs = config['copy'].get('preserve_dirs', false)
+			settings.each_pair do |copy_target, target_settings|
+				# The settings for each target could be an array of file patterns to include.
+				if target_settings.kind_of?(Array)
+					target_settings = {'include' => target_settings}
+				else
+					target_settings = defaults.merge(target_settings)
+				end
 
-				config['copy'].delete 'hooks'
-				config['copy'].delete 'preserve_dirs'
+				copy_target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
+				files = getFilesToCopy(target_settings)
 
-				# Iterate over each target.
-				# Each key is the destination directory where to copy the files to.
-				config['copy'].each_pair do |copy_target, settings|
-					# The settings for each target could be an array of file patterns to include.
-					if settings.kind_of?(Array)
-						settings = {'include' => settings}
-					end
-
-					copy_target_hooks = Hooks.new(settings['hooks'], default_hooks)
-					files = getFilesToCopy(settings)
-
-					if settings.has_key? 'include'
-						copy_target = File.dirname(copy_target) if File.file?(copy_target)
-						createJekyllFiles(site, copy_target, files, copy_target_hooks)
-					end
+				if target_settings.has_key? 'include'
+					copy_target = File.dirname(copy_target) if File.file?(copy_target)
+					createJekyllFiles(site, copy_target, files, copy_target_hooks)
 				end
 			end
 		end

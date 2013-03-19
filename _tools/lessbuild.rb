@@ -1,8 +1,6 @@
 require 'fileutils'
 require 'tmpdir'
 require 'digest/md5'
-require_relative 'lib/helpers.rb'
-require_relative 'lib/hooks.rb'
 
 module Jekyll
 	########################################################
@@ -14,10 +12,9 @@ module Jekyll
 		@@css = {}
 		def self.css() @@css end
 
-		alias :css_site_payload :site_payload
-
+		alias :site_payload_lessbuild :site_payload
 		def site_payload
-			payload = css_site_payload
+			payload = site_payload_lessbuild
 			payload['site'] = payload['site'].deep_merge({
 				'css' => @@css.dup
 			})
@@ -71,36 +68,34 @@ module Jekyll
 	end
 
 	class Page
-		alias :css_to_liquid_orig :to_liquid
+		alias :to_liquid_lessbuild :to_liquid
 		def to_liquid
-			CSSToLiquidRelative.to_liquid(css_to_liquid_orig)
+			CSSToLiquidRelative.to_liquid(to_liquid_lessbuild)
 		end
 	end
 
 	class Post
-		alias :css_to_liquid_orig :to_liquid
+		alias :to_liquid_lessbuild :to_liquid
 		def to_liquid
-			CSSToLiquidRelative.to_liquid(css_to_liquid_orig)
+			CSSToLiquidRelative.to_liquid(to_liquid_lessbuild)
 		end
 	end
 
-	##############
-	# The Plugin #
-	##############
+	############
+	# The Tool #
+	############
 
-	class LessBuildGenerator < Generator
+	class LessBuildGenerator < Tools::Tool
+		name :lessbuild
+
 		def generate(site)
-			config = site.config
+			defaults = settings['defaults']
+			settings.delete('defaults')
+			default_hooks = Hooks.new(defaults['hooks'])
 
-			if config.has_key? 'lessbuild' and config['lessbuild'].kind_of?(Hash)
-				default_hooks = Hooks.new(config['lessbuild']['hooks'])
-				config['lessbuild'].delete 'hooks'
-
-				config['lessbuild'].each_pair do |build_target, settings|
-					build_target_hooks = Hooks.new(settings['hooks'], default_hooks)
-					settings.delete 'hooks'
-					site.static_files << CompiledLessFile.new(site, build_target, settings, build_target_hooks)
-				end
+			settings.each_pair do |build_target, target_settings|
+				build_target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
+				site.static_files << CompiledLessFile.new(site, build_target, target_settings, build_target_hooks)
 			end
 		end
 	end
