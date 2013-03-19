@@ -22,12 +22,12 @@ module Jekyll
 
 				if target_settings.has_key? 'include'
 					copy_target = File.dirname(copy_target) if File.file?(copy_target)
-					createJekyllFiles(site, copy_target, files, copy_target_hooks)
+					createJekyllFiles(site, copy_target, files, copy_target_hooks, target_settings)
 				end
 			end
 		end
 
-		def createJekyllFiles(site, copy_target, files, hooks)
+		def createJekyllFiles(site, copy_target, files, hooks, settings)
 			files.each do |file|
 				# If the file is refering to file(s) that dont exist yet
 				# then we create a CompositeCopiedStaticFile that will
@@ -36,11 +36,11 @@ module Jekyll
 				# as the array is being traversed. This works perfectly
 				# fine since the array#each enumerator will enumerate newly added items.
 				if file.has_key? :getFiles
-					site.static_files << CompositeCopiedStaticFile.new(site, file, copy_target, hooks)
+					site.static_files << CompositeCopiedStaticFile.new(site, file, copy_target, hooks, settings)
 				# Otherwise the file we are about to copy actual exists so we just create
 				# a CopiedStaticFile and append it to site#static_files.
 				else
-					site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks)
+					site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks, settings)
 				end
 			end
 		end
@@ -133,18 +133,19 @@ module Jekyll
 	end
 
 	class CompositeCopiedStaticFile < StaticFile
-		def initialize(site, filedata, dest_dir, hooks)
+		def initialize(site, filedata, dest_dir, hooks, settings)
 			super(site, '', '', '')
 			@filedata = filedata
 			@dest_dir = dest_dir
 			@hooks = hooks
+			@settings = settings;
 		end
 
 		def write(dest)
 			files = @filedata[:getFiles].call()
 
 			files.each do |file|
-				@site.static_files << CopiedStaticFile.new(@site, file[:base], file[:dir], file[:name], @dest_dir, @hooks)
+				@site.static_files << CopiedStaticFile.new(@site, file[:base], file[:dir], file[:name], @dest_dir, @hooks, @settings)
 			end
 
 			false
@@ -152,10 +153,11 @@ module Jekyll
 	end
 
 	class CopiedStaticFile < StaticFile
-		def initialize(site, base, dir, name, dest_dir, hooks)
+		def initialize(site, base, dir, name, dest_dir, hooks, settings)
 			super(site, base, dir, name)
 			@dest_dir = dest_dir
 			@hooks = hooks
+			@settings = settings
 		end
 
 		def destination(dest)
@@ -178,7 +180,7 @@ module Jekyll
 
 					FileUtils.mkdir_p(File.dirname(dest_path))
 
-					@hooks.call_hook('copy_file', path, dest_path) do |source_path, dest_path|
+					@hooks.call_hook('copy_file', path, dest_path, @settings.dup) do |source_path, dest_path|
 						FileUtils.cp_r(source_path, dest_path)
 					end
 				end

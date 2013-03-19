@@ -31,10 +31,12 @@ tools:
       hooks: ../_hooks/jsbuild.rb
     cssbuild:
       hooks: ../_hooks/cssbuild-less.rb
+      lessc: _assets/node_modules/less/bin/lessc
   tasks:
     - jsbuild:
         "../_src/_js/some-framework.js":
           hooks: _src/hooks/typescript.rb
+          tsc: _assets/node_modules/typescript/bin/tsc.js
           include:
             - _assets/vendor/some-framework/module.ts
         js/main-@hash.js:

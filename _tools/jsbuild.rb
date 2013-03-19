@@ -173,21 +173,23 @@ module Jekyll
 				end
 
 				if source_modified
+					settings = @settings.dup
+
 					output = FileHelpers::combine(files) do |filename, content|
-						@hooks.call_hook('pre_combine_file', filename, content) do |file, file_content|
+						@hooks.call_hook('pre_combine_file', filename, content, settings) do |file, file_content|
 							file_content
 						end
 					end
 
-					output = @hooks.call_hook('pre_compile', output) do |js|
+					output = @hooks.call_hook('pre_compile', output, settings) do |js|
 						js
 					end
 
-					output = @hooks.call_hook('compile', output) do |js|
+					output = @hooks.call_hook('compile', output, settings) do |js|
 						js
 					end
 
-					output = @hooks.call_hook('post_compile', output) do |js|
+					output = @hooks.call_hook('post_compile', output, settings) do |js|
 						js
 					end
 				end

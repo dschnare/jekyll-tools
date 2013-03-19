@@ -1,12 +1,12 @@
-# Requires lessjs to be available at '_assets/node_modules/less/bin/lessc'
+# Requires the settings key 'lessc' to point to the Less JavaScript compiler.
 # Requires Nodejs to be installed.
 
 require 'open3'
 
 # Compiles the main stylesheet. Note that all LESS stylesheets 
 # included in the main stylesheet will be relative to the main_file.
-def compile(main_file, include_paths)
-	lessjs = '_assets/node_modules/less/bin/lessc'
+def compile(main_file, include_paths, settings)
+	lessjs = settings['lessc']
 	content = File.read(main_file)
 	result = content
 	command = "node \"#{lessjs}\" --compress --include-path=\"#{include_paths}\" -"
