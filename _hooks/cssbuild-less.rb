@@ -5,15 +5,14 @@ require 'open3'
 
 # Compiles the main stylesheet. Note that all LESS stylesheets 
 # included in the main stylesheet will be relative to the main_file.
-def compile(main_file, include_paths, settings)
+def compile(css, include_paths, settings)
 	lessjs = settings['lessc']
-	content = File.read(main_file)
-	result = content
-	command = "node \"#{lessjs}\" --compress --include-path=\"#{include_paths}\" -"
+	result = css
+	command = "node \"#{lessjs}\" --compress --include-path=\"#{include_paths.join(':')}\" -"
 
 	begin
 		Open3.popen3(command) do |stdin, stdout, stderr|
-			stdin.puts(content)
+			stdin.puts(css)
 			stdin.close
 			result = stdout.read
 			error = stderr.read

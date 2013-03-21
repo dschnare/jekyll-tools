@@ -7,18 +7,19 @@
 #
 # @pram [String] main_file The file path to the main stylesheet.
 # @param [Hash] settings The settings for the tool.
+# @return [String] The contents of the main stylesheet.
 def pre_compile(main_file, settings)
-	main_file
+	File.read(main_file)
 end
 
 # Compiles the main stylesheet.
 #
-# @pram [String] main_file The file path to the main LESS stylesheet.
-# @pram [String] include_paths All directories to set as an include path. Format <path>:<path>:<path>...
+# @pram [String] css The loaded main stylesheet.
+# @pram [Array] include_paths All directories to set as an include path.
 # @param [Hash] settings The settings for the tool.
 # @return [String] The compiled result.
-def compile(main_file, include_paths, settings)
-	main_file
+def compile(css, include_paths, settings)
+	css
 end
 
 # Called after compilation. This hook can modify the compiled CSS.

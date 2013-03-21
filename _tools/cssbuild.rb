@@ -193,10 +193,12 @@ module Jekyll
 					if File.exist? tmp_main_file
 						settings = @settings.dup
 
-						@hooks.call_hook('pre_compile', tmp_main_file, settings)
-
-						output = @hooks.call_hook('compile', tmp_main_file, include_paths.join(':'), settings) do |main_file, include_paths|
+						output = @hooks.call_hook('pre_compile', tmp_main_file, settings) do |main_file|
 							File.read(main_file)
+						end
+
+						output = @hooks.call_hook('compile', output, include_paths, settings) do |css|
+							css
 						end
 
 						output = @hooks.call_hook('post_compile', output, settings) do |css|
