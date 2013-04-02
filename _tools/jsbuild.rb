@@ -140,7 +140,8 @@ module Jekyll
 		# def update_filename_hash(compiled_output)
 		# 	if @build_target.include?('@hash')
 		# 		digest = Digest::MD5.hexdigest(compiled_output)
-		# 		@name = @build_target.gsub('@hash', digest)
+		# 		hashed_build_target = @build_target.gsub('@hash', digest)
+		# 		Site.js[@build_target] = File.basename(hashed_build_target)
 		# 		Site.js[@build_target] = @name
 		# 	end
 		# end
@@ -158,11 +159,7 @@ module Jekyll
 		def requires_compile?
 			source_files.each do |file|
 				last_modified = File.stat(file).mtime.to_i
-
-				if @@mtimes[file] != last_modified
-					@@mtimes[file] = last_modified
-					return true
-				end
+				return true if @@mtimes[file] != last_modified
 			end
 
 			return false
@@ -170,7 +167,10 @@ module Jekyll
 
 		def compile()
 			settings = @settings.dup
+			source_files = self.source_files
 			output = ''
+
+			source_files.each do |file| @@mtimes[file] = File.stat(file).mtime.to_i end
 
 			output = Tools::FileHelpers::combine(source_files) do |filename, content|
 				@hooks.call_hook('pre_combine_file', filename, content, settings) do |file, file_content|

@@ -119,9 +119,10 @@ module Jekyll
 			return false if !requires_compile?
 
 			dest_path = destination(dest)
+			compiled_output = compile()
 			FileUtils.mkdir_p(File.dirname(dest_path))
 			File.open(dest_path, 'w') do |f|
-				f.write self.compile()
+				f.write compiled_output
 			end
 
 			return true
@@ -134,8 +135,8 @@ module Jekyll
 		# def update_filename_hash(compiled_output)
 		# 	if @build_target.include?('@hash')
 		# 		digest = Digest::MD5.hexdigest(compiled_output)
-		# 		@name = @build_target.gsub('@hash', digest)
-		# 		Site.js[@build_target] = @name
+		# 		hashed_build_target = @build_target.gsub('@hash', digest)
+		# 		Site.js[@build_target] = File.basename(hashed_build_target)
 		# 	end
 		# end
 
@@ -158,11 +159,7 @@ module Jekyll
 		def requires_compile?
 			source_files.each do |file|
 				last_modified = File.stat(file).mtime.to_i
-
-				if @@mtimes[file] != last_modified
-					@@mtimes[file] = last_modified
-					return true
-				end
+				return true if @@mtimes[file] != last_modified
 			end
 
 			return false
@@ -174,6 +171,8 @@ module Jekyll
 			Dir.mkdir tmpdir if !File.directory?(tmpdir)
 			include_paths = [tmpdir];
 			files = source_files
+
+			files.each do |file| @@mtimes[file] = File.stat(file).mtime.to_i end
 
 			namespaced_files = [];
 			files.each { |f| namespaced_files << f if f.respond_to?(:namespace) }

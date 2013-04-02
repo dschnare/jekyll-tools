@@ -135,10 +135,6 @@ module Jekyll
 		def write(dest)
 			written = false
 
-			if @name == 'main.js'
-				puts "#{getDirs} -- #{path} -- #{File.exists?(path)}"
-			end
-
 			getDirs.each do |d|
 				dest_path = File.join(dest, d, '', @name)
 
