@@ -90,7 +90,7 @@ module Jekyll
 		def generate(site, settings)
 			defaults = settings['defaults']
 			settings.delete('defaults')
-			default_hooks = Hooks.new(defaults['hooks'])
+			default_hooks = Tools::Hooks.new(defaults['hooks'])
 
 			settings.each_pair do |build_target, target_settings|
 				# The settings for each target could be an array of file patterns to include.
@@ -100,99 +100,94 @@ module Jekyll
 					target_settings = defaults.merge(target_settings)
 				end
 
-				target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
+				target_hooks = Tools::Hooks.new(target_settings['hooks'], default_hooks)
 				site.static_files << CompiledJavaScriptFile.new(site, build_target, target_settings, target_hooks)
 			end
 		end
 	end
 
 	class CompiledJavaScriptFile < StaticFile
-		def initialize(site, file, settings, hooks)
-			super(site, site.source, File.dirname(file), File.basename(file))
-			@file = file
+		def initialize(site, build_target, settings, hooks)
+			base = site.dest
+			dir = File.dirname(build_target)
+			name = File.basename(build_target)
+			super(site, base, dir, name)
+
 			@settings = settings
 			@hooks = hooks
-			@mtimes = {}
+			@build_target = build_target
 
-			# We have to compile right away so we can set a site variable
-			# that contains the file name of the JavaScript file with the hash.
-			# We do this here because static files are written last.
-			@compiled_output = compile()
-
-			Site.js[@file] = @file
-
-			if !@compiled_output.empty? and @file.include?('@hash')
-				@digest = Digest::MD5.hexdigest(@compiled_output)
-				hashed_filename = @file.gsub('@hash', @digest)
-				@name = File.basename(hashed_filename)
-				Site.js[@file] = hashed_filename
-			end
+			Site.js[build_target] = build_target
 		end
 
 		def write(dest)
+			return false if !requires_compile?
+
 			dest_path = destination(dest)
-			written = false
-			write = Proc.new do
-				FileUtils.mkdir_p(File.dirname(dest_path))
-				File.open(dest_path, 'w') do |f|
-					f.write @compiled_output
-					written = true
-				end
+			compiled_output = compile()
+			FileUtils.mkdir_p(File.dirname(dest_path))
+			File.open(dest_path, 'w') do |f|
+				f.write compiled_output
 			end
 
-			if !@compiled_output.empty?
-				if (@digest)
-					old_digest = Digest::MD5.hexdigest(File.read(dest_path)) if File.exist?(dest_path)
-					if (old_digest != @digest)
-						write.call
-					end
-				else
-					write.call
-				end
-			end
-
-			written
+			return true
 		end
 
-		def compile()
-			output = ''
+		# NOTE: We can't include the MD5 hash of the file in the file name because
+		# static files are written AFTER pages/posts have been rendered, meaning that by
+		# the time the MD5 has been calculated the pages/posts have been rendered already.
+		#
+		# def update_filename_hash(compiled_output)
+		# 	if @build_target.include?('@hash')
+		# 		digest = Digest::MD5.hexdigest(compiled_output)
+		# 		@name = @build_target.gsub('@hash', digest)
+		# 		Site.js[@build_target] = @name
+		# 	end
+		# end
 
+		def source_files
 			if @settings.has_key? 'include'
 				includes = @settings.get_as_array('include')
 				excludes = @settings.get_as_array('exclude')
-				files = FileHelpers.get_files(includes, excludes)
-				source_modified = false
+				return Tools::FileHelpers.get_files(includes, excludes)
+			end
 
-				files.each do |file|
-					last_modified = File.stat(file).mtime.to_i
+			return []
+		end
 
-					if @mtimes[file] != last_modified
-						@mtimes[file] = last_modified
-						source_modified = true
-					end
+		def requires_compile?
+			source_files.each do |file|
+				last_modified = File.stat(file).mtime.to_i
+
+				if @@mtimes[file] != last_modified
+					@@mtimes[file] = last_modified
+					return true
 				end
+			end
 
-				if source_modified
-					settings = @settings.dup
+			return false
+		end
 
-					output = FileHelpers::combine(files) do |filename, content|
-						@hooks.call_hook('pre_combine_file', filename, content, settings) do |file, file_content|
-							file_content
-						end
-					end
+		def compile()
+			settings = @settings.dup
+			output = ''
 
-					output = @hooks.call_hook('pre_compile', output, settings) do |js|
-						js
-					end
-
-					output = @hooks.call_hook('compile', output, settings) do |js|
-						js
-					end
-
-					output = @hooks.call_hook('post_compile', output, settings) do |js|
-						js
-					end
+			output = Tools::FileHelpers::combine(source_files) do |filename, content|
+				@hooks.call_hook('pre_combine_file', filename, content, settings) do |file, file_content|
+					file_content
 				end
+			end
+
+			output = @hooks.call_hook('pre_compile', output, settings) do |js|
+				js
+			end
+
+			output = @hooks.call_hook('compile', output, settings) do |js|
+				js
+			end
+
+			output = @hooks.call_hook('post_compile', output, settings) do |js|
+				js
 			end
 
 			return output

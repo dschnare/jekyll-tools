@@ -1,1 +1,0 @@
-var SOME_FRAMEWORK;(function(e){function t(e){return e.toUpperCase()}e.toUpper=t})(SOME_FRAMEWORK||(SOME_FRAMEWORK={})),function(e,t){function n(t){var n=e.getElementById("message");n&&(n.innerHTML=t)}t?n(t.toUpper("<em>some framework</em> <strong>exists</strong>!")):n("<em>SOME_FRAMEWORK</em> does <strong>not exist</strong>.")}(this.document,this.SOME_FRAMEWORK);

@@ -2,13 +2,15 @@
 # Requires Nodejs to be installed.
 
 require 'open3'
+require 'os'
 
 # Compiles the main stylesheet. Note that all LESS stylesheets 
 # included in the main stylesheet will be relative to the main_file.
 def compile(css, include_paths, settings)
 	lessjs = settings['lessc']
 	result = css
-	command = "node \"#{lessjs}\" --compress --include-path=\"#{include_paths.join(':')}\" -"
+	sep = (OS.windows? or OS.Underlying.windows?) ? ';' : ':'
+	command = "node \"#{lessjs}\" --compress --include-path=\"#{include_paths.join(sep)}\" -"
 
 	begin
 		Open3.popen3(command) do |stdin, stdout, stderr|

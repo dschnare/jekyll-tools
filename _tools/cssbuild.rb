@@ -88,127 +88,125 @@ module Jekyll
 	class CssBuildGenerator < Tools::Tool
 		name :cssbuild
 
-		def generate(site)
+		def generate(site, settings)
 			defaults = settings['defaults']
 			settings.delete('defaults')
-			default_hooks = Hooks.new(defaults['hooks'])
+			default_hooks = Tools::Hooks.new(defaults['hooks'])
 
 			settings.each_pair do |build_target, target_settings|
-				build_target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
+				build_target_hooks = Tools::Hooks.new(target_settings['hooks'], default_hooks)
+				target_settings = defaults.merge(target_settings) if defaults.kind_of? Hash
 				site.static_files << CompiledCssFile.new(site, build_target, target_settings, build_target_hooks)
 			end
 		end
 	end
 
 	class CompiledCssFile < StaticFile
-		def initialize(site, file, settings, hooks)
-			super(site, site.source, File.dirname(file), File.basename(file))
-			@file = file
+		def initialize(site, build_target, settings, hooks)
+			base = site.dest
+			dir = File.dirname(build_target)
+			name = File.basename(build_target)
+			super(site, base, dir, name)
+
 			@settings = settings
 			@hooks = hooks
+			@build_target = build_target
 
-			# We have to compile right away so we can set a site variable
-			# that contains the file name of the JavaScript file with the hash.
-			# We do this here because static files are written last.
-			@compiled_output = compile()
-
-			Site.css[@file] = @file
-
-			if !@compiled_output.empty? and @file.include?('@hash')
-				@digest = Digest::MD5.hexdigest(@compiled_output)
-				hashed_filename = @file.gsub('@hash', @digest)
-				@name = File.basename(hashed_filename)
-
-				Site.css[@file] = hashed_filename
-			end
+			Site.js[build_target] = build_target
 		end
 
 		def write(dest)
+			return false if !requires_compile?
+
 			dest_path = destination(dest)
-			written = false
-			write = Proc.new do
-				FileUtils.mkdir_p(File.dirname(dest_path))
-				File.open(dest_path, 'w') do |f|
-					f.write @compiled_output
-					written = true
+			FileUtils.mkdir_p(File.dirname(dest_path))
+			File.open(dest_path, 'w') do |f|
+				f.write self.compile()
+			end
+
+			return true
+		end
+
+		# NOTE: We can't include the MD5 hash of the file in the file name because
+		# static files are written AFTER pages/posts have been rendered, meaning that by
+		# the time the MD5 has been calculated the pages/posts have been rendered already.
+		#
+		# def update_filename_hash(compiled_output)
+		# 	if @build_target.include?('@hash')
+		# 		digest = Digest::MD5.hexdigest(compiled_output)
+		# 		@name = @build_target.gsub('@hash', digest)
+		# 		Site.js[@build_target] = @name
+		# 	end
+		# end
+
+		def source_files
+			if @settings.has_key? 'include'
+				includes = @settings.get_as_array('include')
+				excludes = @settings.get_as_array('exclude')
+				main = @settings['main']
+
+				excludes << main
+				files = Tools::FileHelpers.get_namespaced_files(includes, excludes)
+				files << main
+
+				return files
+			end
+
+			return []
+		end
+
+		def requires_compile?
+			source_files.each do |file|
+				last_modified = File.stat(file).mtime.to_i
+
+				if @@mtimes[file] != last_modified
+					@@mtimes[file] = last_modified
+					return true
 				end
 			end
 
-			if !@compiled_output.empty?
-				if (@digest)
-					old_digest = Digest::MD5.hexdigest(File.read(dest_path)) if File.exist?(dest_path)
-					if (old_digest != @digest)
-						write.call
-					end
-				else
-					write.call
-				end
-			end
-
-			written
+			return false
 		end
 
 		def compile()
 			output = ''
+			tmpdir = File.join(Dir.tmpdir, 'cssbuild')
+			Dir.mkdir tmpdir if !File.directory?(tmpdir)
+			include_paths = [tmpdir];
+			files = source_files
 
-			if @settings.has_key? 'main'
-				includes = @settings.get_as_array('include')
-				excludes = @settings.get_as_array('exclude')
-				main = @settings['main']
-				source_modified = false
+			namespaced_files = [];
+			files.each { |f| namespaced_files << f if f.respond_to?(:namespace) }
+			files.delete_if { |f| f.respond_to?(:namespace) }
 
-				excludes << main
-				files = FileHelpers.get_namespaced_files(includes, excludes)
-				files << main
+			FileUtils.cp_r(files, tmpdir)
 
-				files.each do |file|
-					last_modified = File.stat(file).mtime.to_i
+			namespaced_files.each do |f|
+				dest = File.join(tmpdir, f.namespace)
+				FileUtils.mkdir_p(dest) unless File.directory?(dest)
+				include_paths << dest unless include_paths.include?(dest)
+				FileUtils.cp_r(f.to_s, dest)
+			end
 
-					if @@mtimes[file] != last_modified or File.exist?(file)
-						@@mtimes[file] = last_modified
-						source_modified = true
-					end
+			tmp_main_file = File.join(tmpdir, File.basename(main))
+
+			if File.exist? tmp_main_file
+				settings = @settings.dup
+
+				output = @hooks.call_hook('pre_compile', tmp_main_file, settings) do |main_file|
+					File.read(main_file)
 				end
 
-				if source_modified
-					tmpdir = File.join(Dir.tmpdir, 'cssbuild')
-					Dir.mkdir tmpdir if !File.directory?(tmpdir)
-					include_paths = [tmpdir];
+				output = @hooks.call_hook('compile', output, include_paths, settings) do |css|
+					css
+				end
 
-					namespaced_files = [];
-					files.each { |f| namespaced_files << f if f.respond_to?(:namespace) }
-					files.delete_if { |f| f.respond_to?(:namespace) }
-
-					FileUtils.cp_r(files, tmpdir)
-
-					namespaced_files.each do |f|
-						dest = File.join(tmpdir, f.namespace)
-						FileUtils.mkdir_p(dest) unless File.directory?(dest)
-						include_paths << dest unless include_paths.include?(dest)
-						FileUtils.cp_r(f.to_s, dest)
-					end
-
-					tmp_main_file = File.join(tmpdir, File.basename(main))
-
-					if File.exist? tmp_main_file
-						settings = @settings.dup
-
-						output = @hooks.call_hook('pre_compile', tmp_main_file, settings) do |main_file|
-							File.read(main_file)
-						end
-
-						output = @hooks.call_hook('compile', output, include_paths, settings) do |css|
-							css
-						end
-
-						output = @hooks.call_hook('post_compile', output, settings) do |css|
-							css
-						end
-					end
-
-					FileUtils.remove_dir(tmpdir, :force => true)
+				output = @hooks.call_hook('post_compile', output, settings) do |css|
+					css
 				end
 			end
+
+			FileUtils.remove_dir(tmpdir, :force => true)
 
 			return output
 		end

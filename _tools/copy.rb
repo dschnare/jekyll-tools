@@ -7,7 +7,7 @@ module Jekyll
 		def generate(site, settings)
 			defaults = settings['defaults']
 			settings.delete('defaults')
-			default_hooks = Hooks.new(defaults['hooks'])
+			default_hooks = Tools::Hooks.new(defaults['hooks'])
 
 			settings.each_pair do |copy_target, target_settings|
 				# The settings for each target could be an array of file patterns to include.
@@ -17,7 +17,7 @@ module Jekyll
 					target_settings = defaults.merge(target_settings)
 				end
 
-				copy_target_hooks = Hooks.new(target_settings['hooks'], default_hooks)
+				copy_target_hooks = Tools::Hooks.new(target_settings['hooks'], default_hooks)
 				files = getFilesToCopy(target_settings)
 
 				if target_settings.has_key? 'include'
@@ -29,19 +29,7 @@ module Jekyll
 
 		def createJekyllFiles(site, copy_target, files, hooks, settings)
 			files.each do |file|
-				# If the file is refering to file(s) that dont exist yet
-				# then we create a CompositeCopiedStaticFile that will
-				# generate new static files when it is about to be written.
-				# These new static files are appended to site#static_files
-				# as the array is being traversed. This works perfectly
-				# fine since the array#each enumerator will enumerate newly added items.
-				if file.has_key? :getFiles
-					site.static_files << CompositeCopiedStaticFile.new(site, file, copy_target, hooks, settings)
-				# Otherwise the file we are about to copy actual exists so we just create
-				# a CopiedStaticFile and append it to site#static_files.
-				else
 					site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks, settings)
-				end
 			end
 		end
 
@@ -129,26 +117,6 @@ module Jekyll
 			end
 
 			files
-		end
-	end
-
-	class CompositeCopiedStaticFile < StaticFile
-		def initialize(site, filedata, dest_dir, hooks, settings)
-			super(site, '', '', '')
-			@filedata = filedata
-			@dest_dir = dest_dir
-			@hooks = hooks
-			@settings = settings;
-		end
-
-		def write(dest)
-			files = @filedata[:getFiles].call()
-
-			files.each do |file|
-				@site.static_files << CopiedStaticFile.new(@site, file[:base], file[:dir], file[:name], @dest_dir, @hooks, @settings)
-			end
-
-			false
 		end
 	end
 
