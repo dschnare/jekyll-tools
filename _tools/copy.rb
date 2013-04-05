@@ -18,28 +18,26 @@ module Jekyll
 				end
 
 				copy_target_hooks = Tools::Hooks.new(target_settings['hooks'], default_hooks)
-				files = getFilesToCopy(target_settings)
+				files = get_files_to_copy(target_settings)
 
 				if target_settings.has_key? 'include'
 					copy_target = File.dirname(copy_target) if File.file?(copy_target)
-					createJekyllFiles(site, copy_target, files, copy_target_hooks, target_settings)
+					create_jekyll_files(site, copy_target, files, copy_target_hooks, target_settings)
 				end
 			end
 		end
 
-		def createJekyllFiles(site, copy_target, files, hooks, settings)
-			files.each do |file|
-					site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks, settings)
-			end
-		end
-
-		def getFilesToCopy(settings)
+		def get_files_to_copy(settings)
 			preserve_dirs = settings.get('preserve_dirs', @preserve_dirs)
 			includes = settings.get_as_array('include')
 			excludes = settings.get_as_array('exclude')
 			files = []
 
 			includes.each do |pattern|
+				# Example: some/dir/**/other/dir/file.txt
+				# base = some/dir
+				# dir = subdir1/subdir2/other/dir
+				# name = file.txt
 				if preserve_dirs and pattern.include? '**'
 					base_pattern = pattern.split('**')[0]
 
@@ -68,42 +66,18 @@ module Jekyll
 							:name => File.basename(source)
 						}
 					end
+				# Example: some/dir/other/dir/file.txt
+				# base = some/dir/other/dir
+				# dir = ''
+				# name = file.txt
 				else
 					sources = Dir.glob pattern
-					# This include pattern does not exist yet.
-					# This pattern may be pointing at a file that
-					# has yet to be generated so we create a proc that will
-					# run this pattern at a later time.
-					if sources.empty?
+					sources.each do |source|
 						files << {
-							:getFiles => Proc.new do
-								_files = []
-
-								Dir.glob pattern do |source|
-									_files << {
-										:base => File.dirname(source),
-										:dir => '',
-										:name => File.basename(source)
-									}
-								end
-
-								excludes.each do |pattern|
-									Dir.glob pattern do |excl|
-										_files.delete_if { |f| File.join(f[:base], f[:dir], f[:name]) == excl }
-									end
-								end
-
-								_files
-							end
+							:base => File.dirname(source),
+							:dir => '',
+							:name => File.basename(source)
 						}
-					else
-						sources.each do |source|
-							files << {
-								:base => File.dirname(source),
-								:dir => '',
-								:name => File.basename(source)
-							}
-						end
 					end
 				end
 			end
@@ -111,12 +85,18 @@ module Jekyll
 			excludes.each do |pattern|
 				Dir.glob pattern do |excl|
 					files.delete_if do |f|
-						File.join(f[:base], f[:dir], f[:name]) == excl unless f.has_key? :getFiles
+						File.join(f[:base], f[:dir], f[:name]) == excl
 					end
 				end
 			end
 
 			files
+		end
+
+		def create_jekyll_files(site, copy_target, files, hooks, settings)
+			files.each do |file|
+					site.static_files << CopiedStaticFile.new(site, file[:base], file[:dir], file[:name], copy_target, hooks, settings)
+			end
 		end
 	end
 
@@ -135,14 +115,13 @@ module Jekyll
 		def write(dest)
 			written = false
 
-			getDirs.each do |d|
-				dest_path = File.join(dest, d, '', @name)
+			get_destination_dirs(dest).each do |d|
+				dest_path = File.join(d, @name)
 
 				if !File.exist?(dest_path) or modified?
 					written = true
 					@@mtimes[path] = mtime
-
-					FileUtils.mkdir_p(File.dirname(dest_path))
+					FileUtils.mkdir_p(d)
 
 					@hooks.call_hook('copy_file', path, dest_path, @settings.dup) do |source_path, dest_path|
 						FileUtils.cp_r(source_path, dest_path)
@@ -153,24 +132,34 @@ module Jekyll
 			written
 		end
 
-		def getDirs
+		# If destination is a glob pattern then will get a list
+		# of all directories we are to copy files to. Some directories
+		# may or may not exist so they will have to be created.
+		#
+		# Example: page[0-9]/docs
+		#  Will get all the directories that match page[0-9]/docs.
+		#  The sub directory docs/ does not have to exist.
+		def get_destination_dirs(destination)
 			if @dest_dir =~ /\*|\?|\}|\]/
-				destination = @site.config['destination']
 				glob = File.join(destination, @dest_dir, @dir)
 				dirs = glob.split('/')
 				leaf = ''
+				list = []
 
 				while (true)
 					break if glob == '.'
 					list = Dir.glob(glob)
 					break unless list.empty?
-					leaf = "#{dirs.pop}/#{leaf}"
+					# No files found so we save them to the leaf
+					# then remove the last directory from glob
+					leaf = File.join(dirs.pop, leaf)
 					glob = File.dirname(glob)
 				end
 
-				list.map { |d| "#{d}/#{leaf}".gsub(destination, '') }
+				# Concatenate the leaf to each file in the list
+				list.map { |d| File.join(d, leaf) }
 			else
-				[File.join(@dest_dir, @dir)]
+				[File.join(destination, @dest_dir, @dir)]
 			end
 		end
 	end

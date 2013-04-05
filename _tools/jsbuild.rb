@@ -107,6 +107,11 @@ module Jekyll
 	end
 
 	class CompiledJavaScriptFile < StaticFile
+		# key = build_target, value = hashed dest path
+		@@hashed_dest_paths = {}
+		# key = build_target, value = hash of mtimes
+		@@instance_mtimes = {}
+
 		def initialize(site, build_target, settings, hooks)
 			base = site.dest
 			dir = File.dirname(build_target)
@@ -118,33 +123,66 @@ module Jekyll
 			@build_target = build_target
 
 			Site.js[build_target] = build_target
+			# If we want to support @hash in the file name of
+			# a build target then we have to compile this file
+			# immediately so that the hash is created and saved
+			# in the site payload before any page/post is rendered.
+			self.write(@site.dest) if @build_target.include?('@hash')
+		end
+
+		def mtimes
+			if @@instance_mtimes.has_key? @build_target
+				return @@instance_mtimes[@build_target]
+			end
+
+			return @@instance_mtimes[@build_target] = {}
+		end
+
+		def hashed_dest_path
+			return '' unless @@hashed_dest_paths.has_key? @build_target
+			return @@hashed_dest_paths[@build_target]
+		end
+
+		def hashed_dest_path=(value)
+			@@hashed_dest_paths[@build_target] = value
 		end
 
 		def write(dest)
-			return false if !requires_compile?
+			if @build_target.include?('@hash')
+				return false if File.exists?(self.hashed_dest_path) and !requires_compile?
 
-			dest_path = destination(dest)
-			compiled_output = compile()
-			FileUtils.mkdir_p(File.dirname(dest_path))
-			File.open(dest_path, 'w') do |f|
-				f.write compiled_output
+				compiled_output = compile()
+				update_filename_hash(compiled_output)
+				dest_path = destination(dest)
+				self.hashed_dest_path = dest_path
+				FileUtils.mkdir_p(File.dirname(dest_path))
+				File.open(dest_path, 'w') do |f|
+					f.write compiled_output
+				end
+
+				return true
+			else
+				dest_path = destination(dest)
+				return false if File.exists?(dest_path) and !requires_compile?
+
+				compiled_output = compile()
+				FileUtils.mkdir_p(File.dirname(dest_path))
+				File.open(dest_path, 'w') do |f|
+					f.write compiled_output
+				end
+
+				return true
 			end
-
-			return true
 		end
 
-		# NOTE: We can't include the MD5 hash of the file in the file name because
-		# static files are written AFTER pages/posts have been rendered, meaning that by
-		# the time the MD5 has been calculated the pages/posts have been rendered already.
-		#
-		# def update_filename_hash(compiled_output)
-		# 	if @build_target.include?('@hash')
-		# 		digest = Digest::MD5.hexdigest(compiled_output)
-		# 		hashed_build_target = @build_target.gsub('@hash', digest)
-		# 		Site.js[@build_target] = File.basename(hashed_build_target)
-		# 		Site.js[@build_target] = @name
-		# 	end
-		# end
+		def update_filename_hash(compiled_output)
+			if @build_target.include?('@hash')
+				digest = Digest::MD5.hexdigest(compiled_output)
+				hashed_build_target = @build_target.gsub('@hash', digest)
+				Site.js[@build_target] = hashed_build_target
+				@name = File.basename(hashed_build_target)
+			end
+		end
 
 		def source_files
 			if @settings.has_key? 'include'
@@ -159,7 +197,7 @@ module Jekyll
 		def requires_compile?
 			source_files.each do |file|
 				last_modified = File.stat(file).mtime.to_i
-				return true if @@mtimes[file] != last_modified
+				return true if self.mtimes[file] != last_modified
 			end
 
 			return false
@@ -170,7 +208,7 @@ module Jekyll
 			source_files = self.source_files
 			output = ''
 
-			source_files.each do |file| @@mtimes[file] = File.stat(file).mtime.to_i end
+			source_files.each do |file| self.mtimes[file] = File.stat(file).mtime.to_i end
 
 			output = Tools::FileHelpers::combine(source_files) do |filename, content|
 				@hooks.call_hook('pre_combine_file', filename, content, settings) do |file, file_content|

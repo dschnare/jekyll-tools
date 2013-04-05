@@ -33,31 +33,31 @@ tools:
       hooks: ../_hooks/cssbuild-less.rb
       lessc: node_modules/less/bin/lessc
   tasks:
+    - cssbuild:
+        css/main-@hash.css:
+          main: _assets/less/main.less
+          include:
+            - _assets/less/*.less
+            - { bootstrap: node_modules/bootstrap/less/*.less }
+        css/main.css:
+            main: _assets/less/main.less
+            include:
+              - _assets/less/*.less
+              - { bootstrap: node_modules/bootstrap/less/*.less }
     - jsbuild:
         "../_assets/_js/some-framework.js":
           hooks: ../_hooks/jsbuild-typescript.rb
           tsc: node_modules/typescript/bin/tsc.js
           include:
             - _assets/vendor/some-framework/module.ts
-    #     js/main-@hash.js:
-    #       - _assets/_js/some-framework.js
-    #       - _assets/js/main.js
-    #     js/main.js:
-    #       - _assets/_js/some-framework.js
-    #       - _assets/js/main.js
-    # - cssbuild:
-    #     css/main-@hash.css:
-    #       main: _assets/less/main.less
-    #       include:
-    #         - _assets/less/*.less
-    #         - { bootstrap: node_modules/bootstrap/less/*.less }
-    #     css/main.css:
-    #         main: _assets/less/main.less
-    #         include:
-    #           - _assets/less/*.less
-    #           - { bootstrap: node_modules/bootstrap/less/*.less }
-    # - copy:
-    #     page[0-9]/docs:
-    #       - _assets/*.txt
-    #     img:
-    #       - node_modules/bootstrap/img/*.*
+        js/main-@hash.js:
+          - _assets/_js/some-framework.js
+          - _assets/js/main.js
+        js/main.js:
+          - _assets/_js/some-framework.js
+          - _assets/js/main.js
+    - copy:
+        page[0-9]/docs:
+          - _assets/*.txt
+        img:
+          - node_modules/bootstrap/img/*.*
