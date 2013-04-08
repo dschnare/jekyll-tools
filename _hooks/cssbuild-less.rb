@@ -9,7 +9,7 @@ require 'os'
 def compile(css, include_paths, settings)
 	lessjs = settings['lessc']
 	result = css
-	sep = (OS.windows? or OS.Underlying.windows?) ? ';' : ':'
+	sep = (OS.windows? or OS::Underlying.windows?) ? ';' : ':'
 	command = "node \"#{lessjs}\" --compress --include-path=\"#{include_paths.join(sep)}\" -"
 
 	begin
