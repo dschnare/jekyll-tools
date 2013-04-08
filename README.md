@@ -18,7 +18,7 @@ Copy the `_plugins`, `_hooks` and `_tools` folders to your Jekyll project.
 
 Next copy the `Gemfile` to your Jekyll project. If you already have a Gemfile
 then ensure the gems are copied over. Specifically, the LESS tool depends on the
-`os` gem and the jsbuild tools depends on the `uglifier` gem.
+`os` gem and the jsbuild tool depends on the `uglifier` gem.
 
 Finally, if you intend on using the built-in tools for TypeScript and/or LESS
 compilation then be sure to create a `package.json` file with the following
@@ -37,7 +37,7 @@ Once you have all your dependencies in order then install them.
 
 # Testing
 
-To experiment with an example quickly see the `test` directory.
+To experiment with an example quickly, see the `test` directory.
 
 
 
@@ -156,16 +156,9 @@ tools:
 
 ---
 
-### jsbuild-less
-
----
+!UPDATE!
 
 ### cssbuild
-
----
-
-
-### lessbuild
 
 This tool compiles LESS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
