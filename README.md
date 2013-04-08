@@ -1,48 +1,151 @@
 # Overview
 
-The Jekyll Tools is a set of hook-driven Jekyll plugins that help compile JS/LESS files and copy files to your site destination.
+Jekyll Tools is a set of hook-driven Jekyll plugins that help 
+automate common tasks such as compiling LESS files, combining and
+minifying JS files and copying files to a destination of your choice.
 
+Tools are required by the Jekyll Tools plugin. Each tool is responsible for
+performing a specific task and exposes hooks that can be overridden.
+
+Hooks provide a convenient mechanism to override various stages of execution
+of a tool. Hooks are functions with specific signatures contained within a
+hook file. Hook files are found in a hooks directory, typically this directory
+is `_hooks`.
 
 # Installation
 
-Copy the `_plugins`, `_hooks` and `_tools` folder to your Jekyll project.
+Copy the `_plugins`, `_hooks` and `_tools` folders to your Jekyll project.
+
+Next copy the `Gemfile` to your Jekyll project. If you already have a Gemfile
+then ensure the gems are copied over. Specifically, the LESS tool depends on the
+`os` gem and the jsbuild tools depends on the `uglifier` gem.
+
+Finally, if you intend on using the built-in tools for TypeScript and/or LESS
+compilation then be sure to create a `package.json` file with the following
+dependencies:
+
+- typescript
+- lessjs
+
+Once you have all your dependencies in order then install them.
+
+    gem install bundler
+    bundle install
+    npm install
 
 
-# Test
+
+# Testing
 
 To experiment with an example quickly see the `test` directory.
 
 
+
 # Documentation
 
-## jsbuild
+To use Jekyll Tools you must have a `tools` hash in your `_config.yml` file
+that has the following keys.
+
+    tools: # The Jekyll Tools hash
+      path: # The path to find the tools (usually _tools)
+      defaults: # The hash containing defaults for each tool
+      tasks: # The sequence of tasks containing a hash of tool settings for each tool to be called
+
+Here's an exmple
+
+```yaml
+tools:
+  path: _tools
+  defaults:
+    cssbuild:
+      hooks: _hooks/cssbuild-less.rb
+      lessc: node_modules/less/bin/lessc
+  tasks:
+    - cssbuild:
+        css/main-@hash.css:
+          main: _assets/less/main.less
+          include:
+            - _assets/less/*.less
+            - { bootstrap: node_modules/bootstrap/less/*.less }
+        css/main.css:
+            main: _assets/less/main.less
+            include:
+              - _assets/less/*.less
+              - { bootstrap: node_modules/bootstrap/less/*.less }
+```
+
+In this example notice that the `cssbuild` tool has `hooks` and `lessc` specified once
+in the `defaults` for the tool. This reduces the need to repeat these keys whenever the
+tool is used in the `tasks` sequence.
+
+
+## Hooks
+
+Hooks can optionally be specified for each of the tools in your `_config.yml` by using the `hooks`
+key in the tool settings hash. If no hooks are specified then the tool employs a fallback that
+typically acts as a nullop.
+
+When hooks are specified in your defaults hash and in your tool settings hash, then the hooks will
+cascade. This means that if a hook is specified in your default hooks it doesn't have to be sepcified
+in your setting hooks.
+
+
+
+## Tools
+
+### jsbuild
 
 This tool will combine JavaScript files and optionally compile the combined file.
 Compilation is determined by hooks specified in the `_config.yml` file. If there is
 no `compile` hook then no compilation occurs.
 
-This tool comes with example hooks at `_plugins/tools/hooks/jsbuild.hook`. The extension
-of this file is `.hook` so Jekyll does not load it as a Ruby file. Any extension can be used for hook files.
-
-The config mapping `jsbuild` must be present in `_config.yml` for this tool to run.
-
-
-### Template Data
-
-Each build target is exposed as template data on `site.js` and `page.js`. All build target paths
-exposed on `site.js` are absolute paths and all build target paths exposed on `page.js` are
-relative to a specific page.
+Example settings:
 
 ```yaml
 jsbuild:
-  hooks: _plugins/tools/hooks/jsbuild.hook
+  path/file.js: # Path relative to Jekyll destination setting of build target to create
+    hooks: # Path to hooks file
+    include: # Sequence of JS files to combine and compile (can be glob patterns)
+    exclude: # Sequence of JS files to exclude (can be glob patterns)
+```
 
-  js/main-@hash.js:
-    - _src/js/lib/**/*.js
-    - _src/main.js
-  js/main.js:
-    - _src/js/lib/**/*.js
-    - _src/js/main.js
+Or
+
+```yaml
+jsbuild:
+  path/file.js: # Path relative to Jekyll destination setting of build target to create
+    # Sequence of JS files to combine and compile (can be glob patterns)
+```
+
+#### Hooks
+
+- `pre_combine_file(file, file_content, settings)`
+- `pre_compile(js, settings)`
+- `compile(js, settings)`
+- `post_compile(js, settings)`
+
+See `_hooks/jsbuild.rb` for documentation and examples.
+
+
+#### Template Data
+
+Each build target is exposed as template data on `site.js` and `page.js`. All build target paths
+exposed on `site.js` are absolute paths and all build target paths exposed on `page.js` are
+relative to the current page.
+
+```yaml
+tools:
+  defaults:
+    jsbuild:
+      hooks: _plugins/tools/hooks/jsbuild.hook
+  tasks:
+    - jsbuild:
+        js/main-@hash.js:
+          - _src/js/lib/**/*.js
+          - _src/main.js
+        js/main.js:
+          - _src/js/lib/**/*.js
+          - _src/js/main.js
 ```
 
 ```liquid
@@ -51,78 +154,18 @@ jsbuild:
 <script type="text/javascript" src="/js/main.js"></script>
 ```
 
+---
 
-### Config
+### jsbuild-less
 
-**NOTE:** All paths are relative to the project root unless otherwise stated.
+---
 
-**NOTE:** There has to be a default hook file specified that has a 'compile' hook
-or a hook file specific to a build target that has a 'compile' hook in order
-for compilation to occur.
-
-```yaml
-jsbuild:
-  # An optional path to a custom hook file. This will be the
-  # default hooks unless overriden by a build target.
-
-  hooks: _plugins/tools/hooks/jsbuild.hook
-
-  # Every other key represents a build target, where the key
-  # is a JavaScript file relative to the 'destination' setting.
-  # This form is a simple build target where only included files
-  # are listed in a sequence. The order of these files is
-  # important because this is the order they will be combined in.
-
-  inc/js/main.min.js:
-    - _src/js/lib/**/*.js
-    - _src/js/main.js
-
-  # This form is an advanced build target where custom settings
-  # are specified.
-
-  inc/ns/main.min.js:
-    # Hooks are optional and only apply to this build target.
-    # This will override any default hooks, but will still fallback
-    # to the default hooks if a particular hook is not defined at this level.
-
-    hooks: _hooks/jsbuild-custom.rb
-
-    # Sequence of files or file globs to include in the build. The order of these files is
-    # important because this is the order they will be combined in.
-
-    include:
-      - _src/js/lib/**/*.js
-      - _src/js/main.js
-
-    # An optional sequence of files to exclude from the build.
-
-    exclude
-      - _src/js/lib/_deprecated/**/*.js
-
-
-  # This form inserts a MD5 hash of the compiled JavaScript file into
-  # the build target name. The token @hash will be replaced with the MD5 digest.
-
-  inc/js/main-@hash.js:
-    - _src/js/lib/**/*.js
-    - _src/js/main.js
-```
-
-
-### Hooks
-
-- `pre_combine_file(file, file_content)`
-- `pre_compile(js)`
-- `compile(js)`
-- `post_compile(js)`
-
-See `_plugins/tools/hooks/jsbuild.hook` for documentation and examples.
-
+### cssbuild
 
 ---
 
 
-## lessbuild
+### lessbuild
 
 This tool compiles LESS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
