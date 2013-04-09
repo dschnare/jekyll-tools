@@ -7,27 +7,10 @@ module Jekyll
 	class Site
 		attr_accessor :tools
 
-		alias :initialize_jt :initialize
-		def initialize(config)
-			self.initialize_jt(config)
-			@tool_files = self.tools_path
-		end
-
-		alias :reset_jt :reset
-		def reset()
-			self.reset_jt
-			self.tools = {}
-		end
-
-		alias :setup_jt :setup
-		def setup()
-			self.setup_jt
-			self.setup_tools
-		end
-
 		def setup_tools
-			if self.tools.keys.empty?
-				@tool_files = self.tools_path if @tool_files.nil?
+			if @tool_files.nil?
+				@tool_files = self.tools_path
+				self.tools = {}
 
 				@tool_files.each do |dir|
 					Dir[File.join(dir, "**/*.rb")].each do |f|
@@ -35,7 +18,7 @@ module Jekyll
 					end
 				end
 
-				jt_instantiate_subclasses(Jekyll::Tools::Tool).each do |tool|
+				instantiate_subclasses(Jekyll::Tools::Tool).each do |tool|
 					self.tools[tool.class.name] = tool;
 				end
 			end
@@ -47,16 +30,6 @@ module Jekyll
 				[File.join(self.source, config['path'])]
 			else
 				Array(config['path']).map { |d| File.expand_path(d) }
-			end
-		end
-
-		# Write our own version of this method because we can only use Jekyll v0.11.2 on Windows
-		# which does not have this method.
-		def jt_instantiate_subclasses(klass)
-			klass.subclasses.select do |c|
-				!self.safe || c.safe
-			end.sort.map do |c|
-				c.new(self.config)
 			end
 		end
 	end

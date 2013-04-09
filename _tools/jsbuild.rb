@@ -107,8 +107,6 @@ module Jekyll
 	end
 
 	class CompiledJavaScriptFile < StaticFile
-		# key = build_target, value = hashed dest path
-		@@hashed_dest_paths = {}
 		# key = build_target, value = hash of mtimes
 		@@instance_mtimes = {}
 
@@ -138,23 +136,13 @@ module Jekyll
 			return @@instance_mtimes[@build_target] = {}
 		end
 
-		def hashed_dest_path
-			return '' unless @@hashed_dest_paths.has_key? @build_target
-			return @@hashed_dest_paths[@build_target]
-		end
-
-		def hashed_dest_path=(value)
-			@@hashed_dest_paths[@build_target] = value
-		end
-
 		def write(dest)
 			if @build_target.include?('@hash')
-				return false if File.exists?(self.hashed_dest_path) and !requires_compile?
+				return false unless requires_compile?
 
 				compiled_output = compile()
 				update_filename_hash(compiled_output)
 				dest_path = destination(dest)
-				self.hashed_dest_path = dest_path
 				FileUtils.mkdir_p(File.dirname(dest_path))
 				File.open(dest_path, 'w') do |f|
 					f.write compiled_output
@@ -196,6 +184,8 @@ module Jekyll
 
 		def requires_compile?
 			source_files.each do |file|
+				# Can't compile if a file that's is to be included does not exist.
+				return false unless File.exists?(file)
 				last_modified = File.stat(file).mtime.to_i
 				return true if self.mtimes[file] != last_modified
 			end
