@@ -156,115 +156,112 @@ tools:
 
 ---
 
-!UPDATE!
 
 ### cssbuild
 
-This tool compiles LESS stylesheets starting at a main stylesheet that
+This tool compiles CSS stylesheets starting at a main stylesheet that
 includes all dependent stylesheets. Compilation is determined by hooks specified
 in the config.yml file. If there is no `compile` hook then no compilation occurs.
 
-This tool will copy all file globs to a temporary directory where each file is an immediate child. This has two consequences:
 
-1. All `.less` files must have a unique file name.
-2. All `@import` statements must import Less files as if they are all in the same directory.
+Example settings:
 
 ```yaml
-# _config.yml
-lessbuild:
-  hooks: _plugins/tools/hooks/lessbuild.hook
-
-  css/main.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/*.less
-      - _assets/node_modules/bootstrap/less/*.less
+cssbuild:
+  path/file.js: # Path relative to Jekyll destination setting of build target to create
+    hooks: # Path to hooks file
+    main: # The main stylesheet that does the importing
+    include: # Sequence of stylesheets to combine and compile (can be glob patterns)
+    exclude: # Sequence of stylesheets to exclude (can be glob patterns)
 ```
 
+The includes can be namespaced so that when importing the files can be referenced using the
+namespace name. If an include file/pattern is namespaced then the matching file(s) are
+copyied to a temporary directory under a directory with the same name as the namespace.
+Otherwise the included files are left where they are.
+
+**NOTE: The examples below show typical usage with the built-in LESS hooks**
+
+Example:
+
+```yaml
+cssbuild:
+  css/main-@hash.css:
+    hooks: _hooks/cssbuild-less.rb
+    main: _assets/less/main.less
+    include:
+      - _assets/less/*.less
+      - { mynamespace: node_modules/bootstrap/less/*.less }
+```
+
+Then in the `_assets/less/main.less` file:
+
 ```less
-// main.less
+@import "mynamespace/bootstrap"
+@import "mynamespace/responsive"
+// ... rest of file
+```
+
+Without namespaces then your includes must have unique file names otherwise
+they will override each other when you attempt to import.
+
+```yaml
+cssbuild:
+  css/main-@hash.css:
+    hooks: _hooks/cssbuild-less.rb
+    main: _assets/less/main.less
+    include:
+      - _assets/less/*.less
+      - node_modules/bootstrap/less/*.less
+```
+
+Your `main.less` file.
+
+```less
 @import 'bootstrap'     // Twitter Bootstrap's less files
 @import 'responsive'    // Twitter Bootstrap's less files
 @import 'code'          // Twitter Bootstrap's less files
 @import 'mysite-mixins' // Your site's less files
 @import 'mysite-common' // Your site's less files
+// Have to be careful that you don't use a file name that is the
+// same as a LESS file that already exists in Bootstrap.
 ```
 
-If you want to preserve the directory structure of your `.less` files then you can do the following:
 
-***Specify a directory as the include pattern.*** This will copy the entire directory to the temporary directory, thus perserving the directory structure.
+#### Hooks
 
-```yaml
-# _config.yml
-lessbuild:
-  hooks: _plugins/tools/hooks/lessbuild.hook
+- `pre_compile(main_file, settings)`
+- `compile(css, include_paths, settings)`
+- `post_compile(css, settings)`
 
-  css/main.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/*.less
-      - _assets/node_modules/bootstrap/less
-```
-
-```less
-// main.less
-@import 'less/bootstrap'   // Twitter Bootstrap's less files
-@import 'less/responsive'  // Twitter Bootstrap's less files
-@import 'common'           // Your site's less files
-@import 'mixins'           // Your site's less files
-```
-
-***Specify a namespace for the include pattern.*** This will create a new directory with the same name as your namespace in the temporary directory and place all files or directories in it.
-
-```yaml
-# _config.yml
-lessbuild:
-  hooks: _plugins/tools/hooks/lessbuild.hook
-
-  css/main.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/*.less
-      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
-      - { bootstrap2: _assets/node_modules/bootstrap/less }
-```
-
-```less
-// main.less
-@import 'bootstrap/bootstrap'            // From Twitter Bootstrap
-@import 'bootstrap/responsive'           // From Twitter Bootstrap
-// OR
-// @import 'bootstrap2/less/bootstrap'   // From Twitter Bootstrap
-// @import 'bootstrap2/less/responsive'  // From Twitter Bootstrap
-@import 'common'
-@import 'mixins'
-```
-
-This plugin comes with example hooks at `_plugins/tools/hooks/lessbuild.hook`.
-The extension of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
-extension can be used for hook files.
-
-The config mapping `lessbuild` must be present in `_config.yml` for this plugin to run.
+See `_hooks/cssbuild.rb` for documentation and examples. You can also take a look at
+`_hooks/cssbuild-less.rb` for an example of a custom hook.
 
 
-### Template Data
+
+#### Template Data
 
 Each build target is exposed as template data on `site.css` and `page.css`. All build target paths
 exposed on `site.css` are absolute paths and all build target paths exposed on `page.css` are
 relative to a specific page.
 
 ```yaml
-lessbuild:
-  hooks: _plugins/tools/hooks/less.hook
-
-  css/main-@hash.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/**/*.less
-  css/main.css:
-    main: _src/less/main.less
-    include:
-      - _src/less/**/*.less
+tools:
+  defaults:
+    cssbuild:
+      hooks: _hooks/cssbuild-less.rb
+  tasks:
+    - cssbuild:
+        css/main-@hash.css:
+          main: _assets/less/main.less
+          include:
+            - _assets/less/*.less
+            - node_modules/bootstrap/less/*.less
+        css/main-@hash.css:
+          main: _assets/less/main.less
+          include:
+            - _assets/less/*.less
+            - node_modules/bootstrap/less/*.less
 ```
 
 ```liquid
@@ -274,91 +271,60 @@ lessbuild:
 ```
 
 
-### Config
-
-**NOTE:** All paths are relative to the project root unless otherwise stated.
-
-**NOTE:** There has to be a default hook file specified that has a 'compile' hook
-or a hook file specific to a build target that has a 'compile' hook in order
-for compilation to occur.
-
-```yaml
-lessbuild:
-  # An optional path to a custom hook file.
-  # This will be the default hooks unless overriden.
-  # Your hook file must contain a 'compile' hook for
-  # compilation to occur.
-
-  hooks: _plugins/tools/hooks/lessbuild.hook
-
-  # Every other key represents a build target, where
-  # the key is a CSS file relative to the 'destination' setting.
-
-  inc/css/main.min.css:
-    # Hooks are optional and only apply to this build target.
-    # This will override any default hooks, but will still fallback
-    # to the default hooks if a particular hook is not defined at this level.
-
-    hooks: _hooks/lessbuild-custom.rb
-
-    # The path to the main LESS stylesheet.
-
-    main: _src/less/main.less
-
-    # Sequence of glob patterns to include in the build. This is optional if
-    # the only LESS file you have is your main LESS file. Each glob pattern
-    # can be a directory pattern or file pattern. See the documentation above
-    # for more details.
-
-    include:
-      - _src/less/*.less
-      - { bootstrap: _assets/node_modules/bootstrap/less/*.less }
-      - { thirdparty: _assets/vendor/thirdparty/less/*.less }
-
-    # An optional sequence of files to exclude form the build.
-
-    exclude:
-      - _src/less/themes/**/*.less
-
-
-  # This form inserts a MD5 hash of the compiled CSS file into
-  # the build target name. The token @hash will be replaced with the MD5 digest.
-
-  inc/css/main-@hash.css:
-    hooks: _hooks/lessbuild-custom.rb
-    main: _src/less/main.less
-    include:
-      - _src/less/*.less
-      - _assets/node_modules/bootstrap/less/*.less
-```
-
-
-### Hooks
-
-- `pre_compile(main_file)`
-- `compile(main_file, include_paths)`
-- `post_compile(css)`
-
-See `_plugins/tools/hooks/lessbuild.hook` for documentation and examples.
-
-
 ---
 
 
-## copy
+### copy
 
 The copy tool will copy files or directories to a directory relative to the 'destination' setting.
 
-This tool comes with example hooks at `_plugins/tools/hooks/copy.hook`. The extension
-of this file is `.hook` so Jekyll does not load it as a Ruby file. Any
-extension can be used for hook files.
+Example settings:
 
-The config mapping `copy` must be present in `_config.yml` for this tool to run.
+```yaml
+copy:
+  path/dir: # Path relative to Jekyll destination setting of copy target to create (can be a glob that matches directories but introduces new directories at end of path)
+    hooks: # Path to hooks file
+    preserve_dirs: # Boolean indicating wildcard directories should be maintained when copying
+    include: # Sequence of files to copy (can be glob patterns)
+    exclude: # Sequence of files to exclude (can be glob patterns)
+```
+
+Or
+
+```yaml
+copy:
+  path/dir: # Path relative to Jekyll destination setting of copy target to create (can be a glob that matches directories but introduces new directories at end of path)
+    # Sequence of files to copy (can be glob patterns)
+```
+
+If a copy target contains `**/` then you can optionally preserve all recursively matched directories when copying.
+
+Example:
+
+```yaml
+tools:
+  tasks:
+    - copy:
+      preserve_dirs: true
+      page[0-9]/vendor:
+        - node_modules/bootstrap/**/*.*
+```
+
+The above example will copy all files from Twitter bootstrap into
+a `vendor/` directory under a directory of the form `page[0-9]` directly
+under the `destination` directory. If `vendor/` does not exist then the
+path will be created. Because `preserve_dirs` is set to true however,
+the directories under `node_modules/bootstrap` will be copied over under
+the copy target. If `preserve_dirs` was not set or was set to false then only
+the files themselves would be copied to the copy target.
 
 
-### Config
 
-**NOTE:** All paths are relative to the project root unless otherwise stated.
+
+!UPDATE!
+
+
+#### Hooks
 
 
 ```yaml
