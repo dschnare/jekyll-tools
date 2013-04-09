@@ -138,7 +138,18 @@ module Jekyll
 
 		def write(dest)
 			if @build_target.include?('@hash')
-				return false unless requires_compile?
+				# Have to always compile build targets with a hash
+				# because we don't know the file name they will saved
+				# as. Also, these build targets have to be built immediately
+				# and as such are built a second time during the normal
+				# Jekyll static file write process. We build these files
+				# twice because some times their parent directories are
+				# marked for deletion and so we must compile them again,
+				# albeit they will still have the same file name.
+				# WARNING: There is still the issue of a build target that
+				# contains @hash AND depends on another build target. The
+				# pages will not reflect the proper file name of the build target.
+				# return false unless requires_compile?
 
 				compiled_output = compile()
 				update_filename_hash(compiled_output)

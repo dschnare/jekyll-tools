@@ -39,25 +39,30 @@ tools:
           include:
             - _assets/less/*.less
             - node_modules/bootstrap/less/*.less
-        css/main.css:
-            main: _assets/less/main.less
-            include:
-              - _assets/less/*.less
-              - node_modules/bootstrap/less/*.less
     - jsbuild:
         "../_assets/_js/some-framework.js":
           hooks: ../_hooks/jsbuild-typescript.rb
           tsc: node_modules/typescript/bin/tsc.js
           include:
             - _assets/vendor/some-framework/module.ts
-        js/main-@hash.js:
+        inc/scripts/js-@hash.min.js:
+          - node_modules/bootstrap/js/bootstrap-affix.js
+          - node_modules/bootstrap/js/bootstrap-alert.js
+          - node_modules/bootstrap/js/bootstrap-button.js
+          - node_modules/bootstrap/js/bootstrap-carousel.js
+          - node_modules/bootstrap/js/bootstrap-collapse.js
+          - node_modules/bootstrap/js/bootstrap-dropdown.js
+          - node_modules/bootstrap/js/bootstrap-modal.js
+          - node_modules/bootstrap/js/bootstrap-tooltip.js
+          - node_modules/bootstrap/js/bootstrap-popover.js
+          - node_modules/bootstrap/js/bootstrap-scrollspy.js
+          - node_modules/bootstrap/js/bootstrap-tab.js
+          - node_modules/bootstrap/js/bootstrap-transition.js
+          - node_modules/bootstrap/js/bootstrap-typeahead.js
           - _assets/_js/some-framework.js
           - _assets/js/main.js
-        js/main.js:
-          - _assets/_js/some-framework.js
-          - _assets/js/main.js
-    # - copy:
-    #     page[0-9]/docs:
-    #       - _assets/*.txt
-    #     img:
-    #       - node_modules/bootstrap/img/*.*
+    - copy:
+        page[0-9]/docs:
+          - _assets/*.txt
+        img:
+          - node_modules/bootstrap/img/*.*

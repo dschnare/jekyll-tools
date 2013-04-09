@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+	<title>This is real law</title>
+	<link href="http://www.thisisreallaw.com/atom.xml" rel="self"/>
+	<link href="http://www.thisisreallaw.com/"/>
+	<updated>2013-04-09T12:27:07-04:00</updated>
+	<id>http://www.thisisreallaw.com/</id>
+	<author>
+		<name>Lexis-Nexis</name>
+		<email>webmaster@thisisreallaw.com</email>
+	</author>
+
+	
+		<entry>
+			<title>First Post</title>
+			<link href="http://www.thisisreallaw.com/2012/10/06/first-post/"/>
+			<updated>2012-10-06T00:00:00-04:00</updated>
+			<id>http://www.thisisreallaw.com/2012/10/06/first-post/</id>
+			<content type="html">&lt;p&gt;&lt;strong&gt;Misery loves &lt;a href='http://www.sec.gov/spotlight/fcpa/fcpa-cases.shtml'&gt;companies&lt;/a&gt;.&lt;/strong&gt; U.S. federal enforcement officials have declared this to be the “new era” of the Foreign Corrupt Practices Act (FCPA), and most executives &lt;a href='http://www.marketwatch.com/story/kroll-fcpa-study-finds-gaps-in-anti-bribery-compliance-at-multinational-corporations-2012-06-06'&gt;are worried&lt;/a&gt; about their risk exposure, i.e, their chances of being miserable. Those who aren’t concerned &lt;a href='http://www.businessinsurance.com/article/20120620/NEWS07/120629985'&gt;should be&lt;/a&gt;. To keep their spirits up, corporations and their boards and executive teams will have to pay close attention to how FCPA enforcement is playing out, especially in relation to the relatively new Dodd-Frank provisions.&lt;/p&gt;&lt;h3 id='there_goes_the_neighborhood'&gt;There Goes the Neighborhood&lt;/h3&gt;&lt;p&gt;Suits and settlements have become more and more common over the last handful of years. The enforcement of anti-bribery and corruption regulations has greatly increased, particularly in the U.S., led by the Department of Justice (DOJ) and the Securities Exchange Commission (SEC).&lt;/p&gt;</content>
+		</entry>
+	
+
+</feed>

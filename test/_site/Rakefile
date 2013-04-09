@@ -1,0 +1,46 @@
+begin
+	require 'rubygems'
+	require 'bundler'
+rescue LoadError
+	raise "Could not load the bundler gem. Install it with `gem install bundler`."
+end
+
+begin
+	Bundler.setup
+rescue Bundler::GemNotFound
+	raise RuntimeError, "Bundler couldn't find some gems. Did you run `bundle install`?"
+end
+
+task :default => :server
+
+desc 'Build site with Jekyll'
+task :build do
+    jekyll 'build'
+end
+
+desc 'Build and start server with --auto'
+task :server do
+	jekyll 'serve'
+end
+
+def is_windows
+	return true if RUBY_PLATFORM.downcase.include? 'mswin'
+	return true if RUBY_PLATFORM.downcase.include? 'mingw'
+	return false if RUBY_PLATFORM.downcase.include? 'darwin'
+	return false if RUBY_PLATFORM.downcase.include? 'linux'
+	return false
+end
+
+def jekyll(opts = '')
+	if is_windows
+		sh 'chcp 65001'
+		sh 'if exist _site rd /s /q _site'
+		sh 'if exist _includes\gen rd /s /q _includes\gen'
+		sh 'if exist inc\gen rd /s /q inc\gen'
+	else
+		sh 'rm -rf _site'
+		sh 'rm -rf _includes/gen'
+		sh 'rm -rf inc/gen'
+	end
+	sh 'jekyll ' + opts
+end
