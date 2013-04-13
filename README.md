@@ -14,13 +14,23 @@ of a tool. Hooks are functions with specific signatures contained within a
 hook file. Hook files are found in a hooks directory, typically this directory
 is `_hooks`.
 
+# Dependencies
+
+- [Git](http://git-scm.com/)
+- [Ruby](http://www.ruby-lang.org/)
+- [Node with NPM](http://nodejs.org/)
+
 # Installation
 
 Copy the `_plugins`, `_hooks` and `_tools` folders to your Jekyll project.
 
-Next copy the `Gemfile` to your Jekyll project. If you already have a Gemfile
-then ensure the gems are copied over. Specifically, the LESS tool depends on the
-`os` gem and the jsbuild tool depends on the `uglifier` gem.
+*NOTE: You can use the provided Gemfile and package.json to setup a new Jekyll project.*
+
+Next ensure you have the following gems in your Gemfile:
+
+- jekyll ~> 1.0.0.beta3
+- os
+- uglifier
 
 Finally, if you intend on using the built-in hooks for CoffeeScript, TypeScript and/or LESS
 compilation then be sure to create a `package.json` file with the following
@@ -32,9 +42,13 @@ dependencies:
 
 Once you have all your dependencies setup then install them.
 
-    gem install bundler
-    bundle install
     npm install
+    gem install bundler
+    bundle install --path _bundle
+
+To build your Jekyll project:
+
+    bundle exec jekyll build
 
 
 
