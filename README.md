@@ -22,10 +22,11 @@ Next copy the `Gemfile` to your Jekyll project. If you already have a Gemfile
 then ensure the gems are copied over. Specifically, the LESS tool depends on the
 `os` gem and the jsbuild tool depends on the `uglifier` gem.
 
-Finally, if you intend on using the built-in hooks for TypeScript and/or LESS
+Finally, if you intend on using the built-in hooks for CoffeeScript, TypeScript and/or LESS
 compilation then be sure to create a `package.json` file with the following
 dependencies:
 
+- coffee-script
 - typescript
 - lessjs
 
@@ -49,8 +50,8 @@ To use Jekyll Tools you must have a `tools` hash in your `_config.yml` file
 that has the following keys.
 
     tools: # The Jekyll Tools hash
-      path: # The path to find the tools (usually _tools)
-      defaults: # The hash containing defaults for each tool
+      path: # The path to find the tools (defaults to _tools)
+      defaults: # The hash containing defaults for each tool (optional)
       tasks: # The sequence of tasks containing a hash of tool settings for each tool to be called
 
 Here's an exmple
@@ -128,7 +129,7 @@ tools:
       hooks: ../_hooks/jsbuild.rb
   tasks:
     - jsbuild:
-        _assets/js/some-framework.ts.js:
+        "../_assets/js/some-framework.ts.js":
           hooks: _hooks/jsbuild-typescript.rb
           tsc: node_modules/typescript/bin/tsc.js
           include:
@@ -301,7 +302,7 @@ copy:
     # Sequence of files to copy (can be glob patterns)
 ```
 
-If a copy target contains `**/` then you can optionally preserve all recursively matched directories when copying.
+If an include glob pattern contains `**/` then you can optionally preserve all recursively matched directories when copying.
 
 Example:
 

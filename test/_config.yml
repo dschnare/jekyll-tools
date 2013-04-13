@@ -45,6 +45,11 @@ tools:
           tsc: node_modules/typescript/bin/tsc.js
           include:
             - _assets/vendor/some-framework/module.ts
+        "../_assets/js/some-framework.coffee.js":
+          hooks: ../_hooks/jsbuild-coffeescript.rb
+          coffee: node_modules/coffee-script/bin/coffee
+          include:
+            - _assets/vendor/some-framework/module.coffee
         inc/scripts/main.min.js:
           - node_modules/bootstrap/js/bootstrap-affix.js
           - node_modules/bootstrap/js/bootstrap-alert.js

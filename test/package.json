@@ -21,6 +21,7 @@
 	"dependencies": {
 		"lessjs": "git://github.com/cloudhead/less.js.git",
 		"bootstrap": "git://github.com/twitter/bootstrap.git",
-		"typescript": "*"
+		"typescript": "*",
+		"coffee-script": "*"
 	}
 }
