@@ -1,23 +1,7 @@
 {
-	"name": "jekyll-tools-test",
+	"name": "jekyll-project",
 	"version": "0.0.1",
-	"description": "A small test that uses the Jekyll Tools plugins.",
-	"keywords": ["jekyll", "jekyll-tools", "tools", "lesscss", "combiner", "compiler", "hooks"],
-	"author": {
-		"name": "Darren Schnare",
-		"email": "schnare.d@gmail.com"
-	},
-	"contributors": [
-		{
-			"name": "Darren Schnare",
-			"email": "schnare.d@gmail.com"
-		},
-		{
-			"name": "Mathieu Bouchard",
-			"email": "matb33@gmail.com",
-			"web": "http://www.matb33.me/"
-		}
-	],
+	"private": true,
 	"dependencies": {
 		"lessjs": "git://github.com/cloudhead/less.js.git",
 		"bootstrap": "git://github.com/twitter/bootstrap.git",
