@@ -149,9 +149,8 @@ tools:
           include:
             - _assets/vendor/some-framework/module.ts
         js/main.min.js:
-          include:
-            - _assets/js/some-framework.ts.js
-            - _assets/js/main.js
+          - _assets/js/some-framework.ts.js
+          - _assets/js/main.js
 ```
 
 #### Hooks
@@ -240,11 +239,10 @@ tools:
   path: _tools
   defaults:
     cssbuild:
-      hooks: _hooks/cssbuild.rb
+      hooks: _hooks/cssbuild-less.rb
   task:
     - cssbuild:
         css/main.min.css:
-          hooks: _hooks/cssbuild-less.rb
           main: _assets/less/main.less
           include:
             - _assets/less/*.less
@@ -328,9 +326,10 @@ tools:
       hooks: _hooks/copy.rb
   tasks:
     - copy:
-      preserve_dirs: true
       page[0-9]/vendor:
-        - node_modules/bootstrap/**/*.*
+        preserve_dirs: true
+        includes:
+          - node_modules/bootstrap/**/*.*
 ```
 
 The above example will copy all files from Twitter bootstrap into
