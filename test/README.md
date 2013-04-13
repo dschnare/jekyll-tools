@@ -15,7 +15,7 @@ This is a simple test using the Jekyll Tools plugin.
 Run the following to install this project's dependencies:
 
 		npm install 					// install Twitter bootstrap, TypeScript and CoffeeScript
-		gem install Bundler 	// install Bundler to manage ruby gems
+		gem install bundler 	// install Bundler to manage ruby gems
 		bundle install --path _bundle
 
 To build using Jekyll:
