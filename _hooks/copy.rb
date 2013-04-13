@@ -1,3 +1,5 @@
+# Default/stub copy hook file. This hook file will only act as a pass through.
+
 require 'fileutils'
 
 # Copies a source file to a destination.

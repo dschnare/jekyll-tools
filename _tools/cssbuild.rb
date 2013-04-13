@@ -1,86 +1,12 @@
+# The CSS Build Tool. Responsible for compiling stylesheets.
+# This tool depends on specific hooks to be defined in order
+# to perform compilation.
+
 require 'fileutils'
 require 'tmpdir'
 require 'digest/md5'
 
 module Jekyll
-	########################################################
-	# Extend the builtin Jekyll classes so that we can add #
-	# additional variables to the template data hashes.    #
-	########################################################
-
-	class Site
-		@@css = {}
-		def self.css() @@css end
-
-		alias :site_payload_cssbuild :site_payload
-		def site_payload
-			payload = site_payload_cssbuild
-			payload['site'] = payload['site'].deep_merge({
-				'css' => @@css.dup
-			})
-
-			# Make all CSS paths absolute. This is safe to do
-			# because all CSS paths are relative to the site root.
-			css = payload['site']['css']
-			css.each_pair do |k, v|
-				css[k] = File.join('/', v)
-			end
-
-			payload
-		end
-	end
-
-	module CSSToLiquidRelative
-		def self.to_liquid(hash)
-			lq = hash.deep_merge({
-				'css' => Site.css.dup
-			})
-
-			css = lq['css']
-			dir = lq['url']
-			# If the URL of this page is of the form '/page1/index.html'
-			# then we get the dirname of it.
-			dir = File.dirname(dir) if !File.extname(dir).empty?
-			dirs = dir.split('/')
-			# Remove the leading and trailing empty dirs. This occurs
-			# from paths like '/' or '/page1/'.
-			dirs.shift if dirs.first == ''
-			dirs.pop if dirs.last == ''
-			# Construct the relative portion of the URL.
-			rel = ''
-			(1..dirs.length).each { rel << '../' }
-
-			# Prefix the relative portion of the URL to each CSS
-			# path. We have to do this because all CSS paths
-			# are relative to the site root.
-			css.each_pair do |k, v|
-				v = File.join(rel, v)
-				# If the URL to the CSS file is absolute
-				# then we force it to be relative. This will
-				# only ever occur for pages that are at the root
-				# of your site.
-				v = v[1..-1] if v[0] == '/'
-				css[k] = v
-			end
-
-			lq
-		end
-	end
-
-	class Page
-		alias :to_liquid_cssbuild :to_liquid
-		def to_liquid
-			CSSToLiquidRelative.to_liquid(to_liquid_cssbuild)
-		end
-	end
-
-	class Post
-		alias :to_liquid_cssbuild :to_liquid
-		def to_liquid
-			CSSToLiquidRelative.to_liquid(to_liquid_cssbuild)
-		end
-	end
-
 	############
 	# The Tool #
 	############
@@ -114,13 +40,6 @@ module Jekyll
 			@settings = settings
 			@hooks = hooks
 			@build_target = build_target
-
-			Site.css[build_target] = build_target
-			# If we want to support @hash in the file name of
-			# a build target then we have to compile this file
-			# immediately so that the hash is created and saved
-			# in the site payload before any page/post is rendered.
-			self.write(@site.dest) if @build_target.include?('@hash')
 		end
 
 		def mtimes
@@ -132,50 +51,16 @@ module Jekyll
 		end
 
 		def write(dest)
-			if @build_target.include?('@hash')
-				# Have to always compile build targets with a hash
-				# because we don't know the file name they will saved
-				# as. Also, these build targets have to be built immediately
-				# and as such are built a second time during the normal
-				# Jekyll static file write process. We build these files
-				# twice because some times their parent directories are
-				# marked for deletion and so we must compile them again,
-				# albeit they will still have the same file name.
-				# WARNING: There is still the issue of a build target that
-				# contains @hash AND depends on another build target. The
-				# pages will not reflect the proper file name of the build target.
-				# return false unless requires_compile?
+			dest_path = destination(dest)
+			return false if File.exists?(dest_path) and !requires_compile?
 
-				compiled_output = compile()
-				update_filename_hash(compiled_output)
-				dest_path = destination(dest)
-				FileUtils.mkdir_p(File.dirname(dest_path))
-				File.open(dest_path, 'w') do |f|
-					f.write compiled_output
-				end
-
-				return true
-			else
-				dest_path = destination(dest)
-				return false if File.exists?(dest_path) and !requires_compile?
-
-				compiled_output = compile()
-				FileUtils.mkdir_p(File.dirname(dest_path))
-				File.open(dest_path, 'w') do |f|
-					f.write compiled_output
-				end
-
-				return true
+			compiled_output = compile()
+			FileUtils.mkdir_p(File.dirname(dest_path))
+			File.open(dest_path, 'w') do |f|
+				f.write compiled_output
 			end
-		end
 
-		def update_filename_hash(compiled_output)
-			if @build_target.include?('@hash')
-				digest = Digest::MD5.hexdigest(compiled_output)
-				hashed_build_target = @build_target.gsub('@hash', digest)
-				Site.css[@build_target] = hashed_build_target
-				@name = File.basename(hashed_build_target)
-			end
+			return true
 		end
 
 		def source_files

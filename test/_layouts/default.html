@@ -3,7 +3,7 @@
 <head>
 	<title>{{ page.title }}</title>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="{{ site.css['css/main-@hash.css'] }}" />
+	<link rel="stylesheet" type="text/css" href="/css/main.min.css?bust={% random_string %}" />
 </head>
 <body>
 	<h1>{{ page.title }}</h1>
@@ -12,6 +12,6 @@
 
 	{{ content }}
 
-	<script type="text/javascript" src="{{ page.js['inc/scripts/js-@hash.min.js'] }}"></script>
+	<script type="text/javascript" src="/inc/scripts/main.min.js?bust={% random_string %}"></script>
 </body>
 </html>

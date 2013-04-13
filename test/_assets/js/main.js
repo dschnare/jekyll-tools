@@ -2,7 +2,7 @@
 	function write(msg) {
 		var ele = document.getElementById('message');
 		if (ele) {
-			ele.innerHTML = msg + 4;
+			ele.innerHTML = msg + 1500;
 		}
 	}
 

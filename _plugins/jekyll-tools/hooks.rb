@@ -1,9 +1,9 @@
 module Jekyll
 	module Tools
-		# Class that will manage all hook files. Adding a hook file to an instance of this class
-		# will enqueue the hook file so that new hooks are searched first when calling a hook.
-		#
-		# A hook is simply a function within a hook file.
+		# Represents a hooks file that contains several functions.
+		# Hook files can be chained in a parent-child relationship.
+		# The hook lookup order occurs by traversing down the hook
+		# hierarchy from child to parent.
 		class Hooks
 			@@hooks = {}
 			attr_reader :hook_file

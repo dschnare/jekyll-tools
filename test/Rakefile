@@ -15,12 +15,12 @@ task :default => :server
 
 desc 'Build site with Jekyll'
 task :build do
-    jekyll 'build'
+	jekyll 'build'
 end
 
-desc 'Build and start server with --auto'
+desc 'Build and start server with --watch'
 task :server do
-	jekyll 'serve'
+	jekyll 'serve -w'
 end
 
 def is_windows

@@ -1,4 +1,4 @@
-# Default/stub cssbuild hook file. This hook file will only act as a pass through
+# Default/stub cssbuild hook file. This hook file will only act as a pass through.
 # and only included for the purpose of documentation.
 
 # Called just before compiling. This hook can modify the main

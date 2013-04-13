@@ -1,3 +1,4 @@
+# Hooks for the cssbuild tool that compiles LESS stylesheets. The output is minified.
 # Requires the settings key 'lessc' to point to the Less JavaScript compiler.
 # Requires Nodejs to be installed.
 

@@ -1,3 +1,4 @@
+# Default/stub jsbuild hook file. By default these hooks will just combine files and minify them.
 # Requires the 'uglifier' gem to be installed.
 
 require 'uglifier'

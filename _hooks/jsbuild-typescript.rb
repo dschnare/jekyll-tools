@@ -1,3 +1,4 @@
+# Hooks for the jsbuild tool that will compile TypeScript files. Does not minify.
 # Requires the settings key 'tsc' to point to the TypeScript JavaScript compiler.
 # Requires Nodejs to be installed.
 

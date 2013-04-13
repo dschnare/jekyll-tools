@@ -1,3 +1,5 @@
+# The copy Tool. Responsible for copying files to a copy target (i.e. a folder).
+
 require 'fileutils'
 
 module Jekyll

@@ -3,7 +3,7 @@
 ##########
 
 safe:        false
-auto:        false
+watch:       false
 server:      false
 server_port: 4000
 baseurl:     /
@@ -12,7 +12,7 @@ url:         http://localhost:4000
 source:      .
 destination: _site
 plugins:     ../_plugins
-exclude:     ['README.md', 'Gemfile', 'Gemfile.lock', 'package.json', 'node_modules']
+exclude:     ['README.md', 'Rakefile', 'Gemfile', 'Gemfile.lock', 'package.json', 'node_modules']
 
 future:      true
 lsi:         false
@@ -34,18 +34,18 @@ tools:
       lessc: node_modules/less/bin/lessc
   tasks:
     - cssbuild:
-        css/main-@hash.css:
+        css/main.min.css:
           main: _assets/less/main.less
           include:
             - _assets/less/*.less
             - node_modules/bootstrap/less/*.less
     - jsbuild:
-        "../_assets/_js/some-framework.js":
+        "../_assets/js/some-framework.ts.js":
           hooks: ../_hooks/jsbuild-typescript.rb
           tsc: node_modules/typescript/bin/tsc.js
           include:
             - _assets/vendor/some-framework/module.ts
-        inc/scripts/js-@hash.min.js:
+        inc/scripts/main.min.js:
           - node_modules/bootstrap/js/bootstrap-affix.js
           - node_modules/bootstrap/js/bootstrap-alert.js
           - node_modules/bootstrap/js/bootstrap-button.js
@@ -59,7 +59,7 @@ tools:
           - node_modules/bootstrap/js/bootstrap-tab.js
           - node_modules/bootstrap/js/bootstrap-transition.js
           - node_modules/bootstrap/js/bootstrap-typeahead.js
-          - _assets/_js/some-framework.js
+          - _assets/js/some-framework.ts.js
           - _assets/js/main.js
     - copy:
         page[0-9]/docs:

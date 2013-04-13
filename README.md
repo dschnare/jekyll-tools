@@ -1,10 +1,12 @@
 # Overview
 
+**Supports Jekyll 1.0.0.beta3 and above.**
+
 Jekyll Tools is a set of hook-driven Jekyll plugins that help 
 automate common tasks such as compiling LESS files, combining and
 minifying JS files and copying files to a destination of your choice.
 
-Tools are required by the Jekyll Tools plugin. Each tool is responsible for
+Tools are 'required' by the Jekyll Tools plugin. Each tool is responsible for
 performing a specific task and exposes hooks that can be overridden.
 
 Hooks provide a convenient mechanism to override various stages of execution
@@ -20,14 +22,14 @@ Next copy the `Gemfile` to your Jekyll project. If you already have a Gemfile
 then ensure the gems are copied over. Specifically, the LESS tool depends on the
 `os` gem and the jsbuild tool depends on the `uglifier` gem.
 
-Finally, if you intend on using the built-in tools for TypeScript and/or LESS
+Finally, if you intend on using the built-in hooks for TypeScript and/or LESS
 compilation then be sure to create a `package.json` file with the following
 dependencies:
 
 - typescript
 - lessjs
 
-Once you have all your dependencies in order then install them.
+Once you have all your dependencies setup then install them.
 
     gem install bundler
     bundle install
@@ -62,16 +64,11 @@ tools:
       lessc: node_modules/less/bin/lessc
   tasks:
     - cssbuild:
-        css/main-@hash.css:
+        css/main.min.css:
           main: _assets/less/main.less
           include:
             - _assets/less/*.less
             - { bootstrap: node_modules/bootstrap/less/*.less }
-        css/main.css:
-            main: _assets/less/main.less
-            include:
-              - _assets/less/*.less
-              - { bootstrap: node_modules/bootstrap/less/*.less }
 ```
 
 In this example notice that the `cssbuild` tool has `hooks` and `lessc` specified once
@@ -83,11 +80,13 @@ tool is used in the `tasks` sequence.
 
 Hooks can optionally be specified for each of the tools in your `_config.yml` by using the `hooks`
 key in the tool settings hash. If no hooks are specified then the tool employs a fallback that
-typically acts as a nullop.
+typically acts as a nullop, so it's perfectly safe to not specify a hooks file.
 
 When hooks are specified in your defaults hash and in your tool settings hash, then the hooks will
 cascade. This means that if a hook is specified in your default hooks it doesn't have to be sepcified
 in your setting hooks.
+
+Look in the `_hooks` directory for documenation on the built-in hooks.
 
 
 
@@ -117,6 +116,29 @@ jsbuild:
     # Sequence of JS files to combine and compile (can be glob patterns)
 ```
 
+**NOTE: The example below shows typical usage with the built-in TypeScript hooks**
+
+Example: 
+
+```yaml
+tools:
+  path: ../_tools
+  defaults:
+    jsbuild:
+      hooks: ../_hooks/jsbuild.rb
+  tasks:
+    - jsbuild:
+        _assets/js/some-framework.ts.js:
+          hooks: _hooks/jsbuild-typescript.rb
+          tsc: node_modules/typescript/bin/tsc.js
+          include:
+            - _assets/vendor/some-framework/module.ts
+        js/main.min.js:
+          include:
+            - _assets/js/some-framework.ts.js
+            - _assets/js/main.js
+```
+
 #### Hooks
 
 - `pre_combine_file(file, file_content, settings)`
@@ -127,31 +149,18 @@ jsbuild:
 See `_hooks/jsbuild.rb` for documentation and examples.
 
 
-#### Template Data
+#### Template Usage
 
-Each build target is exposed as template data on `site.js` and `page.js`. All build target paths
-exposed on `site.js` are absolute paths and all build target paths exposed on `page.js` are
-relative to the current page.
+Jekyll Tools also creates a custom tag for generating random alpha-numeric strings.
 
-```yaml
-tools:
-  defaults:
-    jsbuild:
-      hooks: _plugins/tools/hooks/jsbuild.hook
-  tasks:
-    - jsbuild:
-        js/main-@hash.js:
-          - _src/js/lib/**/*.js
-          - _src/main.js
-        js/main.js:
-          - _src/js/lib/**/*.js
-          - _src/js/main.js
-```
+    {% random_string %}
+    {% random_string length %}
+
+You can use this tag to generate a cache buster query parameter like so.
 
 ```liquid
-<script type="text/javascript" src="{{ site.js['js/main-@hash.js'] }}"></script>
-<script type="text/javascript" src="{{ site.js['js/main.js'] }}"></script>
-<script type="text/javascript" src="/js/main.js"></script>
+<script type="text/javascript" src="/js/main.min.js?bust={% random_string %}"></script>
+<script type="text/javascript" src="/js/main.min.js"></script>
 ```
 
 ---
@@ -185,13 +194,19 @@ Otherwise the included files are left where they are.
 Example:
 
 ```yaml
-cssbuild:
-  css/main-@hash.css:
-    hooks: _hooks/cssbuild-less.rb
-    main: _assets/less/main.less
-    include:
-      - _assets/less/*.less
-      - { mynamespace: node_modules/bootstrap/less/*.less }
+tools:
+  path: _tools
+  defaults:
+    cssbuild:
+      hooks: _hooks/cssbuild.rb
+  task:
+    - cssbuild:
+        css/main.min.css:
+          hooks: _hooks/cssbuild-less.rb
+          main: _assets/less/main.less
+          include:
+            - _assets/less/*.less
+            - { mynamespace: node_modules/bootstrap/less/*.less }
 ```
 
 Then in the `_assets/less/main.less` file:
@@ -206,13 +221,19 @@ Without namespaces then your includes must have unique file names otherwise
 they will override each other when you attempt to import.
 
 ```yaml
-cssbuild:
-  css/main-@hash.css:
-    hooks: _hooks/cssbuild-less.rb
-    main: _assets/less/main.less
-    include:
-      - _assets/less/*.less
-      - node_modules/bootstrap/less/*.less
+tools:
+  path: _tools
+  defaults:
+    cssbuild:
+      hooks: _hooks/cssbuild.rb
+  task:
+    - cssbuild:
+        css/main.min.css:
+          hooks: _hooks/cssbuild-less.rb
+          main: _assets/less/main.less
+          include:
+            - _assets/less/*.less
+            - node_modules/bootstrap/less/*.less
 ```
 
 Your `main.less` file.
@@ -239,35 +260,18 @@ See `_hooks/cssbuild.rb` for documentation and examples. You can also take a loo
 
 
 
-#### Template Data
+#### Template Usage
 
-Each build target is exposed as template data on `site.css` and `page.css`. All build target paths
-exposed on `site.css` are absolute paths and all build target paths exposed on `page.css` are
-relative to a specific page.
+Jekyll Tools also creates a custom tag for generating random alpha-numeric strings.
 
-```yaml
-tools:
-  defaults:
-    cssbuild:
-      hooks: _hooks/cssbuild-less.rb
-  tasks:
-    - cssbuild:
-        css/main-@hash.css:
-          main: _assets/less/main.less
-          include:
-            - _assets/less/*.less
-            - node_modules/bootstrap/less/*.less
-        css/main-@hash.css:
-          main: _assets/less/main.less
-          include:
-            - _assets/less/*.less
-            - node_modules/bootstrap/less/*.less
-```
+    {% random_string %}
+    {% random_string length %}
+
+You can use this tag to generate a cache buster query parameter like so.
 
 ```liquid
-<link rel="stylesheet" type="text/css" href="{{ site.css['css/main-@hash.css'] }}" />
-<link rel="stylesheet" type="text/css" href="{{ page.css['css/main.css'] }}" />
-<link rel="stylesheet" type="text/css" href="/css/main.css" />
+<link rel="stylesheet" type="text/css" href="/css/main.min.css?bust={% random_string %}" />
+<link rel="stylesheet" type="text/css" href="/css/main.min.css" />
 ```
 
 
@@ -303,6 +307,10 @@ Example:
 
 ```yaml
 tools:
+  path: _tools
+  defaults:
+    copy:
+      hooks: _hooks/copy.rb
   tasks:
     - copy:
       preserve_dirs: true
@@ -320,98 +328,8 @@ the files themselves would be copied to the copy target.
 
 
 
-
-!UPDATE!
-
-
 #### Hooks
-
-
-```yaml
-copy:
-  # An optional path to a custom hook file.
-  # This will be the default hooks unless overriden.
-
-  hooks: _plugins/tools/hooks/copy.hook
-
-  # An optional setting to preserve recursive
-  # directories in file patterns. Default is false.
-
-  preserve_dirs: true
-
-  # Every other key represents a copy target, where the
-  # key is a directory relative to the 'destination' setting.
-  # This form is a simple copy target where only files and/or
-  # directories to copy are listed in a sequence.
-
-  inc/img:
-    - _assets/from_design/images/**/*.*
-    - _assets/node_modules/bootstrap/img/*.*
-
-  # This form is an advanced copy target where custom settings
-  # are specified.
-
-  inc/img:
-    # Hooks are optional and only apply to this copy target.
-    # This will override any default hooks, but will still fallback
-    # to the default hooks if a particular hook is not defined at this level.
-
-    hooks: _hooks/copy-custom.rb
-
-    # An optional setting that preserves recursive directories in
-    # file patterns for this copy target only.
-
-    preserve_dirs: false
-
-    # Sequence of files and/or directories to copy.
-
-    include:
-      - _assets/from_design/images/**/*.*
-      - _assets/node_modules/bootstrap/img/*.*
-
-    # An optional sequence of files to exclude from copying.
-
-    exclude:
-      - _assets/from_design/images/old/**/*.*
-
-
-  # Copy targets can contain directory glob patterns as well.
-  # This will copy the included files to all directories that
-  # match the glob. Glob patterns can match directories created
-  # by Jekyll in the 'destination' directory.
-
-  webpages/**/docs:
-    - _assets/docs/*.pdf
-```
-
-
-### Hooks
 
 - `copy_file(source_file, dest_file)`
 
-See `_plugins/tools/hooks/copy.hook` for documentation and examples.
-
-
-### Preserving Recursive Directories
-
-By default recursive directories are not preserved when copying, meaning each file
-will be copied to the root of its copy target: `{destination}/inc/img/{file.ext}`
-
-```yaml
-copy:
-  inc/img/somedir:
-    - _assets/node_modules/bootstrap/img/**/*.*
-```
-
-Recursive directories can be preserved by setting the `preserve_dirs` mapping to true.
-All images in this example will now have a copy path: `{destination}/inc/img/somedir/{recursive-directories}/{file.ext}`
-
-This setting has the affect of maintaining the path at the first recursive glob of each included file.
-In the following example the directory structure after `_assets/node_modules/bootstrap/img` for all images will be preserved when copying.
-
-```
-_assets/node_modules/bootstrap/img/**/*.*
-```
-
-The `preserve_dirs` mapping can be specified at the top-level or on an individual copy target. This mapping
-has no effect on patterns that do not match recursive directories (i.e. do not contain '**').
+See `_hooks/copy.rb` for documentation and examples.
