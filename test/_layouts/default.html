@@ -3,7 +3,7 @@
 <head>
 	<title>{{ page.title }}</title>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="/css/main.min.css?bust={% random_string %}" />
+	<link rel="stylesheet" type="text/css" href="/css/main.min.css?bust={% date_string %}" />
 </head>
 <body>
 	<h1>{{ page.title }}</h1>
@@ -13,7 +13,7 @@
 	{{ content }}
 
 	<script type="text/javascript" src="/vendor/jquery-1.7.2.min.js"></script>
-	<script type="text/javascript" src="/js/main.min.js?bust={% random_string %}"></script>
-	<script type="text/javascript" src="/js/main.min.js?bust={% random_string %}"></script>
+	<script type="text/javascript" src="/js/main.min.js?bust={% date_string %}"></script>
+	<script type="text/javascript" src="/js/main.min.js?bust={% date_string %}"></script>
 </body>
 </html>
