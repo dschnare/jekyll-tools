@@ -3,3 +3,4 @@ node_modules
 .bundle
 _bundle
 _site
+_js

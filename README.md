@@ -165,15 +165,14 @@ See `_hooks/jsbuild.rb` for documentation and examples.
 
 #### Template Usage
 
-Jekyll Tools also creates a custom tag for generating random alpha-numeric strings.
+Jekyll Tools also creates a custom tag for generating unique date strings.
 
-    {% random_string %}
-    {% random_string length %}
+    {% date_string %}
 
 You can use this tag to generate a cache buster query parameter like so.
 
 ```liquid
-<script type="text/javascript" src="/js/main.min.js?bust={% random_string %}"></script>
+<script type="text/javascript" src="/js/main.min.js?bust={% date_string %}"></script>
 <script type="text/javascript" src="/js/main.min.js"></script>
 ```
 
@@ -275,15 +274,14 @@ See `_hooks/cssbuild.rb` for documentation and examples. You can also take a loo
 
 #### Template Usage
 
-Jekyll Tools also creates a custom tag for generating random alpha-numeric strings.
+Jekyll Tools also creates a custom tag for generating unique date strings.
 
-    {% random_string %}
-    {% random_string length %}
+    {% date_string %}
 
 You can use this tag to generate a cache buster query parameter like so.
 
 ```liquid
-<link rel="stylesheet" type="text/css" href="/css/main.min.css?bust={% random_string %}" />
+<link rel="stylesheet" type="text/css" href="/css/main.min.css?bust={% date_string %}" />
 <link rel="stylesheet" type="text/css" href="/css/main.min.css" />
 ```
 

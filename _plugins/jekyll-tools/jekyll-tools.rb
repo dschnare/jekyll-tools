@@ -2,6 +2,7 @@
 
 require_relative 'helpers.rb'
 require_relative 'hooks.rb'
+require 'date'
 
 module Jekyll
 	# Extend the Jekyll Site class so that we load and 
@@ -80,27 +81,13 @@ module Jekyll
 		end
 	end
 
-	# Tag that produces a random string consisting 
-	# of upper and lowercase alphabetic characters
-	# and digits.
-	#
-	# Example: {% random_string 5 %}
-	# Where 5 is the length of the string.
-	# Default length is 20 characters.
-	#
-	# Reference: http://stackoverflow.com/questions/88311/how-best-to-generate-a-random-string-in-ruby
-	class RandomStringTag < Liquid::Tag
-		def initialize(tag_name, length, tokens)
-			super
-			@length = length.to_i
-			@length = 20 if @length <= 0
-		end
-
+	# Tag that produces the current date and time as a string.
+	# Uses the following format: %Y%m%d%H%M%S%L
+	class DateStringTag < Liquid::Tag
 		def render(context)
-			o = [('a'..'z'),('A'..'Z'),('0'..'9')].map{|i| i.to_a}.flatten
-			return (0...@length).map{ o[rand(o.length)] }.join
+			return DateTime.now.strftime('%Y%m%d%H%M%S%L')
 		end
 	end
 
-	Liquid::Template.register_tag('random_string', Jekyll::RandomStringTag)
+	Liquid::Template.register_tag('date_string', Jekyll::DateStringTag)
 end
